@@ -67,8 +67,8 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                       _load();
                     },
                     selectedColor:
-                        const Color(0xFF2979FF).withValues(alpha: 0.15),
-                    checkmarkColor: const Color(0xFF2979FF),
+                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                    checkmarkColor: Theme.of(context).colorScheme.primary,
                   ),
                 );
               }).toList(),

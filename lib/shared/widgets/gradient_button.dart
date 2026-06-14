@@ -26,8 +26,8 @@ class GradientButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: onPressed != null
-              ? const LinearGradient(
-                  colors: [Color(0xFF2979FF), Color(0xFF8B83FF)],
+              ? LinearGradient(
+                  colors: [Theme.of(context).colorScheme.primary, Theme.of(context).colorScheme.tertiary],
                 )
               : LinearGradient(
                   colors: [Colors.grey.shade400, Colors.grey.shade500],
@@ -36,7 +36,7 @@ class GradientButton extends StatelessWidget {
           boxShadow: onPressed != null
               ? [
                   BoxShadow(
-                    color: const Color(0xFF2979FF).withValues(alpha: 0.3),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),

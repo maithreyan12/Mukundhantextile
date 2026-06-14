@@ -29,6 +29,7 @@ import '../features/admin/orders/admin_orders_screen.dart';
 import '../features/admin/users/admin_users_screen.dart';
 import '../features/admin/coupons/admin_coupons_screen.dart';
 import '../features/admin/banners/admin_banners_screen.dart';
+import '../features/admin/theme/theme_settings_screen.dart';
 
 class AppRouter {
   final AuthCubit authCubit;
@@ -215,6 +216,10 @@ class AppRouter {
           GoRoute(
             path: '/admin/banners',
             builder: (_, _) => const AdminBannersScreen(),
+          ),
+          GoRoute(
+            path: '/admin/theme',
+            builder: (_, _) => const ThemeSettingsScreen(),
           ),
         ],
       ),

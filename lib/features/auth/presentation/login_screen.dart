@@ -104,9 +104,9 @@ class _LoginScreenState extends State<LoginScreen>
               end: Alignment.bottomRight,
               colors: context.isDarkMode
                   ? [
-                      const Color(0xFF0D0D0D),
-                      const Color(0xFF16213E),
-                      const Color(0xFF0F3460),
+                      Theme.of(context).colorScheme.surface,
+                      Colors.transparent,
+                      Theme.of(context).colorScheme.tertiary,
                     ]
                   : [
                       const Color(0xFFF8F9FD),
@@ -119,7 +119,9 @@ class _LoginScreenState extends State<LoginScreen>
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
-                child: FadeTransition(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: SlideTransition(
                     position: _slideAnimation,
@@ -153,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Mukundhan Textiles',
+                          'Mukundhan Tex & Readymades',
                           textAlign: TextAlign.center,
                           style: context.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w900,
@@ -244,10 +246,10 @@ class _LoginScreenState extends State<LoginScreen>
                                   builder: (context, state) {
                                     return PremiumButton(
                                       onPressed: state is AuthLoading ? null : _login,
-                                      backgroundColor: context.isDarkMode ? Colors.white : Colors.black,
+                                      backgroundColor: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                       child: state is AuthLoading
                                           ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: context.isDarkMode ? Colors.black : Colors.white))
-                                          : Text('SIGN IN', style: TextStyle(color: context.isDarkMode ? Colors.black : Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                                          : Text('SIGN IN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
                                     );
                                   },
                                 ),
@@ -303,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen>
                               child: Text(
                                 'Sign Up',
                                 style: context.textTheme.bodyMedium?.copyWith(
-                                  color: context.isDarkMode ? Colors.white : Colors.black,
+                                  color: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                   fontWeight: FontWeight.w800,
                                   decoration: TextDecoration.underline,
                                 ),
@@ -314,6 +316,7 @@ class _LoginScreenState extends State<LoginScreen>
                       ],
                     ),
                   ),
+                ),
                 ),
               ),
             ),

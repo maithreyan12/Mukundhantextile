@@ -75,14 +75,15 @@ class _ECommerceAppState extends State<ECommerceApp> {
         BlocProvider(create: (_) => NotificationCubit()),
         BlocProvider(create: (_) => ThemeCubit()),
       ],
-      child: BlocBuilder<ThemeCubit, ThemeMode>(
-        builder: (context, themeMode) {
+      child: BlocBuilder<ThemeCubit, ThemeState>(
+        builder: (context, themeState) {
+          final ct = themeState.colorTheme;
           return MaterialApp.router(
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeMode,
+            theme: AppTheme.lightTheme(ct),
+            darkTheme: AppTheme.darkTheme(ct),
+            themeMode: themeState.themeMode,
             routerConfig: _appRouter.router,
           );
         },

@@ -26,6 +26,7 @@ class QuantityStepper extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildButton(
+            context: context,
             icon: Icons.remove,
             onTap: quantity > min ? () => onChanged(quantity - 1) : null,
           ),
@@ -39,6 +40,7 @@ class QuantityStepper extends StatelessWidget {
             ),
           ),
           _buildButton(
+            context: context,
             icon: Icons.add,
             onTap: quantity < max ? () => onChanged(quantity + 1) : null,
           ),
@@ -47,7 +49,7 @@ class QuantityStepper extends StatelessWidget {
     );
   }
 
-  Widget _buildButton({required IconData icon, VoidCallback? onTap}) {
+  Widget _buildButton({required BuildContext context, required IconData icon, VoidCallback? onTap}) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -58,7 +60,7 @@ class QuantityStepper extends StatelessWidget {
           child: Icon(
             icon,
             size: 18,
-            color: onTap != null ? const Color(0xFF2979FF) : Colors.grey,
+            color: onTap != null ? Theme.of(context).colorScheme.primary : Colors.grey,
           ),
         ),
       ),

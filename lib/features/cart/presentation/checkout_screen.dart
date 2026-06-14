@@ -83,7 +83,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ),
       body: ResponsiveWrapper(
-        maxWidth: 800,
+        maxWidth: 900,
         child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

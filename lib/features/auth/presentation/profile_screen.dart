@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/extensions.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/premium_button.dart';
 import '../../../shared/widgets/cached_image.dart';
-import '../../../core/theme_cubit.dart';
 import '../bloc/auth_cubit.dart';
 import '../bloc/auth_state.dart';
 
@@ -18,20 +19,6 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
-        actions: [
-          BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, themeMode) {
-              return IconButton(
-                icon: Icon(
-                  themeMode == ThemeMode.dark
-                      ? Icons.light_mode_rounded
-                      : Icons.dark_mode_rounded,
-                ),
-                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
-              );
-            },
-          ),
-        ],
       ),
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
@@ -40,8 +27,11 @@ class ProfileScreen extends StatelessWidget {
           }
 
           final profile = state.profile;
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: SingleChildScrollView(
+            padding: EdgeInsets.all(Responsive.horizontalPadding(context)),
             child: Column(
               children: [
                 // Avatar
@@ -120,9 +110,35 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.admin_panel_settings_outlined,
                     title: 'Admin Dashboard',
                     onTap: () => context.push('/admin'),
-                    color: const Color(0xFFEAEAEA),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 const SizedBox(height: 16),
+
+                // ── Contact & About ───────────────────
+                _menuItem(
+                  context,
+                  icon: Icons.phone_outlined,
+                  title: 'Call Us — ${AppConstants.contactPhone}',
+                  onTap: () async {
+                    final uri = Uri.parse('tel:${AppConstants.contactPhone.replaceAll(' ', '')}');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    }
+                  },
+                ),
+                _menuItem(
+                  context,
+                  icon: Icons.location_on_outlined,
+                  title: 'Visit Store',
+                  onTap: () => _showStoreInfoSheet(context),
+                ),
+                _menuItem(
+                  context,
+                  icon: Icons.info_outline,
+                  title: 'About Mukundhan Tex & Readymades',
+                  onTap: () => _showAboutSheet(context),
+                ),
+
                 const SizedBox(height: 32),
                 PremiumButton(
                   onPressed: () => context.read<AuthCubit>().signOut(),
@@ -138,6 +154,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+          ),
           );
         },
       ),
@@ -195,17 +213,188 @@ class ProfileScreen extends StatelessWidget {
           ),
           PremiumButton(
             isFullWidth: false,
-            backgroundColor: const Color(0xFFEAEAEA),
+            backgroundColor: Theme.of(context).colorScheme.primary,
             onPressed: () {
               context
                   .read<AuthCubit>()
                   .updateProfile({'name': nameController.text.trim()});
               Navigator.pop(ctx);
             },
-            child: const Text('SAVE', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800)),
+            child: const Text('SAVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
+    );
+  }
+
+  void _showStoreInfoSheet(BuildContext context) {
+    final isDesktop = Responsive.isLargeScreen(context);
+    final content = Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.store, color: Theme.of(context).colorScheme.primary, size: 28),
+              const SizedBox(width: 12),
+              Text('Our Store',
+                style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    AppConstants.contactAddress,
+                    style: context.textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.phone, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                Text(
+                  AppConstants.contactPhone,
+                  style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final uri = Uri.parse(
+                  'https://maps.app.goo.gl/FkS3Pras5srMkBc86?g_st=iw',
+                );
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const Icon(Icons.map),
+              label: const Text('Open in Maps'),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+
+    if (isDesktop) {
+      showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: content,
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => content,
+      );
+    }
+  }
+
+  void _showAboutSheet(BuildContext context) {
+    final isDesktop = Responsive.isLargeScreen(context);
+    final content = Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.checkroom, color: Theme.of(context).colorScheme.primary, size: 48),
+          const SizedBox(height: 12),
+          Text('Mukundhan Tex & Readymades',
+            style: context.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(AppConstants.appTagline,
+            style: context.textTheme.bodyMedium?.copyWith(
+              color: context.isDarkMode ? Colors.white60 : Colors.black54,
+            )),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _infoRow(context, Icons.location_on_outlined, AppConstants.contactAddress),
+                const SizedBox(height: 12),
+                _infoRow(context, Icons.phone_outlined, AppConstants.contactPhone),
+                const SizedBox(height: 12),
+                _infoRow(context, Icons.email_outlined, AppConstants.adminEmail),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text('Version 1.0.0',
+            style: context.textTheme.bodySmall),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+
+    if (isDesktop) {
+      showDialog(
+        context: context,
+        builder: (ctx) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: content,
+          ),
+        ),
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (ctx) => content,
+      );
+    }
+  }
+
+  Widget _infoRow(BuildContext context, IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 10),
+        Expanded(child: Text(text, style: context.textTheme.bodySmall)),
+      ],
     );
   }
 }

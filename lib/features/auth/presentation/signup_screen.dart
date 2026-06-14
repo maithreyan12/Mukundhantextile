@@ -99,9 +99,9 @@ class _SignupScreenState extends State<SignupScreen>
               end: Alignment.bottomRight,
               colors: context.isDarkMode
                   ? [
-                      const Color(0xFF0D0D0D),
-                      const Color(0xFF16213E),
-                      const Color(0xFF0F3460),
+                      Theme.of(context).colorScheme.surface,
+                      Colors.transparent,
+                      Theme.of(context).colorScheme.tertiary,
                     ]
                   : [
                       const Color(0xFFF8F9FD),
@@ -114,7 +114,9 @@ class _SignupScreenState extends State<SignupScreen>
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
-                child: FadeTransition(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -240,10 +242,10 @@ class _SignupScreenState extends State<SignupScreen>
                                 builder: (context, state) {
                                   return PremiumButton(
                                     onPressed: state is AuthLoading ? null : _signUp,
-                                    backgroundColor: context.isDarkMode ? Colors.white : Colors.black,
+                                    backgroundColor: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                     child: state is AuthLoading
                                         ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: context.isDarkMode ? Colors.black : Colors.white))
-                                        : Text('CREATE ACCOUNT', style: TextStyle(color: context.isDarkMode ? Colors.black : Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                                        : Text('CREATE ACCOUNT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
                                   );
                                 },
                               ),
@@ -264,7 +266,7 @@ class _SignupScreenState extends State<SignupScreen>
                             child: Text(
                               'Sign In',
                               style: context.textTheme.bodyMedium?.copyWith(
-                                color: context.isDarkMode ? Colors.white : Colors.black,
+                                color: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
                                 fontWeight: FontWeight.w800,
                                 decoration: TextDecoration.underline,
                               ),
@@ -274,6 +276,7 @@ class _SignupScreenState extends State<SignupScreen>
                       ),
                     ],
                   ),
+                ),
                 ),
               ),
             ),

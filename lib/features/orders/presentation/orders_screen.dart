@@ -50,7 +50,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             );
           }
 
-          return RefreshIndicator(
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: RefreshIndicator(
             onRefresh: () => context.read<OrdersCubit>().loadOrders(),
             child: ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -100,6 +103,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   ),
                 );
               },
+            ),
+          ),
             ),
           );
         },

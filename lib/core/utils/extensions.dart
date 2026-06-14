@@ -11,6 +11,11 @@ extension ContextExtensions on BuildContext {
   double get screenWidth => mq.size.width;
   double get screenHeight => mq.size.height;
   bool get isDarkMode => theme.brightness == Brightness.dark;
+  
+  /// Dynamic primary color from selected theme
+  Color get primaryColor => colorScheme.primary;
+  /// Dynamic accent/secondary color from selected theme
+  Color get accentColor => colorScheme.secondary;
 
   void showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(this).hideCurrentSnackBar();

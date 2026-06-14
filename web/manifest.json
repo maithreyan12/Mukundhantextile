@@ -1,11 +1,11 @@
 {
-    "name": "e_commerce",
-    "short_name": "e_commerce",
+    "name": "Mukundhan Tex & Readymades",
+    "short_name": "Mukundhan Tex",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#6C63FF",
-    "description": "A new Flutter project.",
+    "background_color": "#0D1B2A",
+    "theme_color": "#0D1B2A",
+    "description": "Premium sarees, silk collections, cotton textiles, and readymade clothing. Shop quality fabrics and traditional Indian wear online.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

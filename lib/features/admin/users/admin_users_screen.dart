@@ -47,13 +47,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   return ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
-                          const Color(0xFF2979FF).withValues(alpha: 0.1),
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       child: Text(
                         user.name.isNotEmpty
                             ? user.name[0].toUpperCase()
                             : 'U',
-                        style: const TextStyle(
-                          color: Color(0xFF2979FF),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -69,13 +69,13 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2979FF)
+                              color: Theme.of(context).colorScheme.primary
                                   .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('Admin',
+                            child: Text('Admin',
                                 style: TextStyle(
-                                    fontSize: 10, color: Color(0xFF2979FF))),
+                                    fontSize: 10, color: Theme.of(context).colorScheme.primary)),
                           ),
                       ],
                     ),

@@ -57,7 +57,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ),
       ),
       body: ResponsiveWrapper(
-        maxWidth: 800,
+        maxWidth: 900,
         child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

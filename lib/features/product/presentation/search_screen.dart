@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/extensions.dart';
+import '../../../core/utils/responsive_helper.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../wishlist/bloc/wishlist_cubit.dart';
@@ -37,6 +38,8 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = Responsive.isLargeScreen(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -96,28 +99,34 @@ class _SearchScreenState extends State<SearchScreen> {
             );
           }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(maxCrossAxisExtent: 220,
-              childAspectRatio: 0.62,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: state.products.length,
-            itemBuilder: (context, index) {
-              final product = state.products[index];
-              return BlocBuilder<WishlistCubit, WishlistState>(
-                builder: (context, wishState) {
-                  return ProductCard(
-                    product: product,
-                    isInWishlist: wishState.wishlistIds.contains(product.id),
-                    onTap: () => context.push('/product/${product.id}'),
-                    onWishlistTap: () =>
-                        context.read<WishlistCubit>().toggleWishlist(product.id),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1400),
+              child: GridView.builder(
+                padding: EdgeInsets.all(Responsive.horizontalPadding(context)),
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: Responsive.productGridMaxExtent(context),
+                  childAspectRatio: 0.62,
+                  crossAxisSpacing: isDesktop ? 16 : 12,
+                  mainAxisSpacing: isDesktop ? 16 : 12,
+                ),
+                itemCount: state.products.length,
+                itemBuilder: (context, index) {
+                  final product = state.products[index];
+                  return BlocBuilder<WishlistCubit, WishlistState>(
+                    builder: (context, wishState) {
+                      return ProductCard(
+                        product: product,
+                        isInWishlist: wishState.wishlistIds.contains(product.id),
+                        onTap: () => context.push('/product/${product.id}'),
+                        onWishlistTap: () =>
+                            context.read<WishlistCubit>().toggleWishlist(product.id),
+                      );
+                    },
                   );
                 },
-              );
-            },
+              ),
+            ),
           );
         },
       ),

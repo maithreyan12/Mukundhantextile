@@ -16,9 +16,17 @@ class AppConstants {
   static const String avatarsBucket = 'avatars';
 
   // ── App Info ──────────────────────────────────────────
-  static const String appName = "Mukundhan Textiles";
+  static const String appName = "Mukundhan Tex & Readymades";
   static const String appTagline = 'Shop Smart, Live Better';
   static const String currency = '₹';
+
+  // ── Contact Info ─────────────────────────────────────
+  static const String contactPhone = '96777 81159';
+  static const String contactAddress =
+      '22, Chennai-Bangalore Road, Kilmonavur, Vellore 632 013';
+  static const String storeMapUrl =
+      'https://maps.app.goo.gl/FkS3Pras5srMkBc86?g_st=iw';
+
 
   // ── Pagination ────────────────────────────────────────
   static const int pageSize = 20;

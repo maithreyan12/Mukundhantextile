@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class ResponsiveWrapper extends StatelessWidget {
   final Widget child;
   final double maxWidth;
+  final EdgeInsetsGeometry? padding;
 
   const ResponsiveWrapper({
     super.key,
     required this.child,
     this.maxWidth = 800.0,
+    this.padding,
   });
 
   @override
@@ -15,7 +17,9 @@ class ResponsiveWrapper extends StatelessWidget {
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: child,
+        child: padding != null
+            ? Padding(padding: padding!, child: child)
+            : child,
       ),
     );
   }

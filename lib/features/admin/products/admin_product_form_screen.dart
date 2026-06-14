@@ -252,17 +252,17 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                               height: 100,
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: const Color(0xFF2979FF)),
+                                    color: Theme.of(context).colorScheme.primary),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Column(
+                              child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.add_photo_alternate_outlined,
-                                      color: Color(0xFF2979FF)),
+                                      color: Theme.of(context).colorScheme.primary),
                                   Text('Add',
                                       style: TextStyle(
-                                          color: Color(0xFF2979FF),
+                                          color: Theme.of(context).colorScheme.primary,
                                           fontSize: 12)),
                                 ],
                               ),
@@ -276,17 +276,17 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                               margin: const EdgeInsets.only(left: 8),
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: const Color(0xFF2979FF)),
+                                    color: Theme.of(context).colorScheme.primary),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Column(
+                              child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(Icons.link,
-                                      color: Color(0xFF2979FF)),
+                                      color: Theme.of(context).colorScheme.primary),
                                   Text('Add URL',
                                       style: TextStyle(
-                                          color: Color(0xFF2979FF),
+                                          color: Theme.of(context).colorScheme.primary,
                                           fontSize: 12)),
                                 ],
                               ),
@@ -365,7 +365,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                       value: _isActive,
                       onChanged: (v) => setState(() => _isActive = v),
                       title: const Text('Active'),
-                      activeThumbColor: const Color(0xFF2979FF),
+                      activeThumbColor: Theme.of(context).colorScheme.primary,
                       contentPadding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: 24),

@@ -12,7 +12,9 @@ class OrderSuccessScreen extends StatelessWidget {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
-            child: Column(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TweenAnimationBuilder<double>(
@@ -66,6 +68,7 @@ class OrderSuccessScreen extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
             ),
           ),
         ),

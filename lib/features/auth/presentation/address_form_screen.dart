@@ -72,7 +72,10 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SingleChildScrollView(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
@@ -153,6 +156,8 @@ class _AddressFormScreenState extends State<AddressFormScreen> {
               ),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

@@ -1,107 +1,111 @@
 import 'package:flutter/material.dart';
+import 'theme_cubit.dart';
 
 class AppTheme {
   AppTheme._();
 
-  // ── Color Palette ─────────────────────────────────────
-  static const Color _primaryDark = Color(0xFF0D0D0D); // Deep Black
-  static const Color _primaryLight = Color(0xFFEAEAEA); // Off-white
-  static const Color _accent = Color(0xFFEAEAEA); // Off-white Primary
-  static const Color _accentLight = Color(0xFF2979FF); // Electric Blue (Subtle)
+  // ── Functional Colors ──────────────────────────────────
   static const Color _errorColor = Color(0xFFFF4C4C);
   static const Color _successColor = Color(0xFF2ED573);
   static const Color _warningColor = Color(0xFFFF9F43);
-  
-  static const Color _surfaceDark = Color(0xFF141414);
-  static const Color _surfaceLight = Color(0xFFF1F1F1);
-  static const Color _cardDark = Color(0xFF1C1C1C);
-  static const Color _cardLight = Color(0xFFFFFFFF);
-  
-  static const Color _textDark = Color(0xFFF5F5F5); // White/Light Grey
-  static const Color _textLight = Color(0xFF121212);
-  static const Color _subtitleDark = Color(0xFFA0A0A0);
-  static const Color _subtitleLight = Color(0xFF6B7280);
 
-  static Color get accent => _accent;
   static Color get error => _errorColor;
   static Color get success => _successColor;
   static Color get warning => _warningColor;
 
-  // ── Border Radius (12-20 as requested) ────────────────
+  // ── Border Radius ──────────────────────────────────────
   static const double radiusSm = 12;
   static const double radiusMd = 16;
   static const double radiusLg = 20;
   static const double radiusXl = 24;
 
-  // ── Light Theme ───────────────────────────────────────
-  static ThemeData get lightTheme {
+  // ── Generate Light Theme from Color ────────────────────
+  static ThemeData lightTheme(AppColorTheme ct) {
+    final onPrimary = ct.isLight ? const Color(0xFF1A1A1A) : Colors.white;
     final colorScheme = ColorScheme.light(
-      primary: _primaryLight,
-      onPrimary: Colors.black,
-      secondary: _accentLight,
-      onSecondary: Colors.black,
-      surface: _surfaceLight,
-      onSurface: _textLight,
+      primary: ct.primary,
+      onPrimary: onPrimary,
+      secondary: ct.accent,
+      onSecondary: Colors.white,
+      tertiary: ct.primaryLight,
+      surface: const Color(0xFFF5F7FA),
+      onSurface: const Color(0xFF1A1A1A),
       error: _errorColor,
       onError: Colors.white,
-      outline: const Color(0xFFD1D1D1),
+      outline: const Color(0xFFCDD5E0),
     );
-
-    return _buildTheme(colorScheme, Brightness.light);
+    return _buildTheme(colorScheme, Brightness.light, ct);
   }
 
-  // ── Dark Theme (Streetwear Default) ───────────────────
-  static ThemeData get darkTheme {
+  // ── Generate Dark Theme from Color ─────────────────────
+  static ThemeData darkTheme(AppColorTheme ct) {
+    final onPrimaryDark = _brightenColor(ct.primary, 0.6);
     final colorScheme = ColorScheme.dark(
-      primary: _primaryLight,
-      onPrimary: Colors.black,
-      secondary: _accentLight,
-      onSecondary: Colors.black,
-      surface: _primaryDark,
-      onSurface: _textDark,
+      primary: onPrimaryDark,
+      onPrimary: Colors.white,
+      secondary: ct.accent,
+      onSecondary: Colors.white,
+      tertiary: ct.primaryLight,
+      surface: ct.primaryDark,
+      onSurface: const Color(0xFFF5F5F5),
       error: _errorColor,
       onError: Colors.white,
-      outline: const Color(0xFF222222),
+      outline: Color.lerp(ct.primaryDark, Colors.white, 0.15)!,
     );
-
-    return _buildTheme(colorScheme, Brightness.dark);
+    return _buildTheme(colorScheme, Brightness.dark, ct);
   }
 
-  static ThemeData _buildTheme(ColorScheme colorScheme, Brightness brightness) {
+  /// Brighten a color for dark mode readability
+  static Color _brightenColor(Color c, double amount) {
+    return Color.lerp(c, Colors.white, amount)!;
+  }
+
+  static ThemeData _buildTheme(ColorScheme cs, Brightness brightness, AppColorTheme ct) {
     final isDark = brightness == Brightness.dark;
-    final textTheme = _buildTextTheme(isDark);
+    final textTheme = _buildTextTheme(isDark, ct);
+    final cardColor = isDark
+        ? Color.lerp(ct.primaryDark, Colors.white, 0.08)!
+        : Colors.white;
+    final subtitleColor = isDark
+        ? const Color(0xFF8E99A4)
+        : const Color(0xFF6B7280);
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      colorScheme: colorScheme,
+      colorScheme: cs,
       textTheme: textTheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: cs.surface,
 
       // AppBar
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: isDark ? ct.primaryDark : Colors.white,
         surfaceTintColor: Colors.transparent,
-        foregroundColor: isDark ? _textDark : _textLight,
+        foregroundColor: isDark ? const Color(0xFFF5F5F5) : const Color(0xFF1A1A1A),
         elevation: 0,
-        scrolledUnderElevation: 0.0,
+        scrolledUnderElevation: 0.5,
         centerTitle: true,
         titleTextStyle: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w800, // Bolder for streetwear
-          letterSpacing: 1.0,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.5,
+          color: isDark ? const Color(0xFFF5F5F5) : const Color(0xFF1A1A1A),
         ),
       ),
 
       // Cards
       cardTheme: CardThemeData(
-        color: isDark ? _cardDark : _cardLight,
+        color: cardColor,
         surfaceTintColor: Colors.transparent,
-        elevation: 8,
-        shadowColor: isDark ? Colors.black.withValues(alpha: 0.8) : Colors.black12,
+        elevation: 4,
+        shadowColor: isDark
+            ? Colors.black.withValues(alpha: 0.6)
+            : ct.primary.withValues(alpha: 0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           side: BorderSide(
-            color: isDark ? const Color(0xFF222222) : const Color(0xFFE5E5E5),
+            color: isDark
+                ? Color.lerp(ct.primaryDark, Colors.white, 0.1)!
+                : const Color(0xFFE5EAF0),
             width: 1.0,
           ),
         ),
@@ -111,8 +115,8 @@ class AppTheme {
       // Elevated Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: _accent,
-          foregroundColor: Colors.black, // Stark contrast
+          backgroundColor: ct.primary,
+          foregroundColor: ct.isLight ? const Color(0xFF1A1A1A) : Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
@@ -128,12 +132,15 @@ class AppTheme {
       // Outlined Buttons
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: isDark ? Colors.white : Colors.black,
+          foregroundColor: isDark ? Colors.white : ct.primary,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
           ),
-          side: BorderSide(color: isDark ? Colors.white : Colors.black, width: 1.5),
+          side: BorderSide(
+            color: isDark ? cs.primary : ct.primary,
+            width: 1.5,
+          ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
@@ -144,7 +151,7 @@ class AppTheme {
       // Text Buttons
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: _accent,
+          foregroundColor: isDark ? cs.primary : ct.primary,
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
           ),
@@ -156,91 +163,75 @@ class AppTheme {
         filled: true,
         fillColor: isDark
             ? Colors.white.withValues(alpha: 0.05)
-            : Colors.grey.shade100,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            : const Color(0xFFF0F3F8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF333333) : Colors.grey.shade300,
-          ),
+          borderSide: BorderSide(color: cs.outline),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),
-          borderSide: BorderSide(
-            color: isDark ? const Color(0xFF333333) : Colors.grey.shade300,
-          ),
+          borderSide: BorderSide(color: cs.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),
-          borderSide: const BorderSide(color: _accent, width: 2),
+          borderSide: BorderSide(color: cs.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusSm),
           borderSide: const BorderSide(color: _errorColor),
         ),
-        hintStyle: TextStyle(
-          color: isDark ? _subtitleDark : _subtitleLight,
-          fontSize: 14,
-        ),
+        hintStyle: TextStyle(color: subtitleColor, fontSize: 14),
       ),
 
       // Bottom Navigation
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
-        selectedItemColor: _accentLight, // Electric Blue Active Tab
-        unselectedItemColor: isDark ? _subtitleDark : _subtitleLight,
+        backgroundColor: isDark ? ct.primaryDark : Colors.white,
+        selectedItemColor: isDark ? cs.primary : ct.primary,
+        unselectedItemColor: subtitleColor,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-        ),
+        selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+        unselectedLabelStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
       ),
 
       // Chips
       chipTheme: ChipThemeData(
-        backgroundColor: isDark
-            ? const Color(0xFF1C1C1C)
-            : Colors.grey.shade100,
-        selectedColor: _accent,
+        backgroundColor: isDark ? cardColor : Color.lerp(ct.primary, Colors.white, 0.92)!,
+        selectedColor: ct.primary,
         labelStyle: textTheme.bodySmall?.copyWith(
           fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : Colors.black,
+          color: isDark ? Colors.white : const Color(0xFF1A1A1A),
         ),
         secondaryLabelStyle: textTheme.bodySmall?.copyWith(
           fontWeight: FontWeight.w700,
-          color: Colors.black, // Dark text on selected neon green
+          color: Colors.white,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusSm),
-          side: BorderSide(color: isDark ? const Color(0xFF333333) : Colors.grey.shade300),
+          side: BorderSide(color: cs.outline),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
 
       // Divider
       dividerTheme: DividerThemeData(
-        color: isDark ? const Color(0xFF262626) : Colors.grey.shade200,
+        color: isDark
+            ? Color.lerp(ct.primaryDark, Colors.white, 0.1)!
+            : const Color(0xFFE5EAF0),
         thickness: 1,
       ),
 
       // Dialog
       dialogTheme: DialogThemeData(
-        backgroundColor: isDark ? _cardDark : _cardLight,
+        backgroundColor: cardColor,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLg),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusLg)),
       ),
 
       // Bottom Sheet
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isDark ? _surfaceDark : Colors.white,
+        backgroundColor: isDark ? ct.primaryDark : Colors.white,
         surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(radiusXl)),
@@ -249,120 +240,56 @@ class AppTheme {
 
       // Snackbar
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? const Color(0xFF222222) : const Color(0xFF333333),
-        contentTextStyle: TextStyle(
-          color: Colors.white,
-        ),
+        backgroundColor: ct.primaryDark,
+        contentTextStyle: const TextStyle(color: Colors.white),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusSm),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusSm)),
       ),
 
       // Tab Bar
       tabBarTheme: TabBarThemeData(
-        labelColor: _accent,
-        unselectedLabelColor: isDark ? _subtitleDark : _subtitleLight,
-        indicatorColor: _accent,
+        labelColor: isDark ? cs.primary : ct.primary,
+        unselectedLabelColor: subtitleColor,
+        indicatorColor: isDark ? cs.primary : ct.primary,
         indicatorSize: TabBarIndicatorSize.label,
         labelStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w700),
         unselectedLabelStyle: textTheme.labelLarge,
       ),
 
-      // Floating Action Button
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: _accent,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        shape: CircleBorder(),
+      // FAB
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: ct.accent,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        shape: const CircleBorder(),
       ),
     );
   }
 
-  static TextTheme _buildTextTheme(bool isDark) {
-    final color = isDark ? _textDark : _textLight;
-    final subtitle = isDark ? _subtitleDark : _subtitleLight;
+  static TextTheme _buildTextTheme(bool isDark, AppColorTheme ct) {
+    // Light mode: always dark text for readability
+    // Dark mode: always light text for readability
+    final color = isDark ? const Color(0xFFF5F5F5) : const Color(0xFF1A1A1A);
+    final subtitle = isDark
+        ? const Color(0xFF8E99A4)
+        : const Color(0xFF6B7280);
 
     return TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        color: color,
-        letterSpacing: -0.5,
-      ),
-      displayMedium: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w800,
-        color: color,
-        letterSpacing: -0.5,
-      ),
-      displaySmall: TextStyle(
-        fontSize: 24,
-        fontWeight: FontWeight.w700,
-        color: color,
-        letterSpacing: -0.5,
-      ),
-      headlineLarge: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.w700,
-        color: color,
-        letterSpacing: -0.5,
-      ),
-      headlineMedium: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w700,
-        color: color,
-      ),
-      headlineSmall: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: color,
-      ),
-      titleLarge: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w700,
-        color: color,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
-      bodyLarge: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: color,
-      ),
-      bodyMedium: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-        color: color,
-      ),
-      bodySmall: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w500,
-        color: subtitle,
-      ),
-      labelLarge: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-        color: color,
-      ),
-      labelMedium: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: color,
-      ),
-      labelSmall: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w600,
-        color: subtitle,
-      ),
+      displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.5),
+      displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: color, letterSpacing: -0.5),
+      displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: color, letterSpacing: -0.5),
+      headlineLarge: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: color, letterSpacing: -0.5),
+      headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
+      headlineSmall: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color),
+      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color),
+      titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color),
+      titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: color),
+      bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: color),
+      bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: color),
+      bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: subtitle),
+      labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color),
+      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: subtitle),
     );
   }
 }

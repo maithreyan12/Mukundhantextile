@@ -21,6 +21,7 @@ class _AdminShellState extends State<AdminShell> {
     _NavItem(icon: Icons.people_rounded, label: 'Users', route: '/admin/users'),
     _NavItem(icon: Icons.local_offer_rounded, label: 'Coupons', route: '/admin/coupons'),
     _NavItem(icon: Icons.image_rounded, label: 'Banners', route: '/admin/banners'),
+    _NavItem(icon: Icons.palette_rounded, label: 'Theme', route: '/admin/theme'),
   ];
 
   void _onNavTap(int index) {
@@ -103,8 +104,8 @@ class _AdminShellState extends State<AdminShell> {
       width: 230,
       decoration: BoxDecoration(
         color: context.isDarkMode
-            ? const Color(0xFF0D0D0D)
-            : const Color(0xFFF8F9FD),
+            ? Theme.of(context).colorScheme.surface
+            : const Color(0xFFF5F7FA),
         border: Border(
           right: BorderSide(
             color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200,
@@ -158,16 +159,17 @@ class _AdminShellState extends State<AdminShell> {
   Widget _buildNavTile(int index, {bool inDrawer = false}) {
     final isSelected = _selectedIndex == index;
     final item = _navItems[index];
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
       child: ListTile(
         selected: isSelected,
-        selectedTileColor: const Color(0xFF2979FF).withValues(alpha: 0.1),
+        selectedTileColor: primaryColor.withValues(alpha: 0.12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         leading: Icon(
           item.icon,
-          color: isSelected ? const Color(0xFF2979FF) : null,
+          color: isSelected ? primaryColor : null,
           size: 22,
         ),
         title: Text(
@@ -175,7 +177,7 @@ class _AdminShellState extends State<AdminShell> {
           style: TextStyle(
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             fontSize: 14,
-            color: isSelected ? const Color(0xFF2979FF) : null,
+            color: isSelected ? primaryColor : null,
           ),
         ),
         onTap: () {

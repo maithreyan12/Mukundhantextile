@@ -49,7 +49,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
 
-          return ListView.separated(
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: state.notifications.length,
             separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -71,14 +74,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ? (context.isDarkMode
                             ? Colors.transparent
                             : Colors.white)
-                        : const Color(0xFF2979FF).withValues(alpha: 0.06),
+                        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: notif.isRead
                           ? (context.isDarkMode
                               ? Colors.white10
                               : Colors.grey.shade200)
-                          : const Color(0xFF2979FF).withValues(alpha: 0.2),
+                          : Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
@@ -88,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2979FF).withValues(alpha: 0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -97,7 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               : notif.type == 'promo'
                                   ? Icons.local_offer_outlined
                                   : Icons.notifications_outlined,
-                          color: const Color(0xFF2979FF),
+                          color: Theme.of(context).colorScheme.primary,
                           size: 20,
                         ),
                       ),
@@ -129,8 +132,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF2979FF),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -139,6 +142,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 ),
               );
             },
+          ),
+            ),
           );
         },
       ),

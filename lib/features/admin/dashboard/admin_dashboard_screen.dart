@@ -80,11 +80,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(color: Color(0xFF2979FF)),
+            CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
             SizedBox(height: 16),
             Text('Loading dashboard...'),
           ],
@@ -119,7 +119,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
 
     return RefreshIndicator(
-      color: const Color(0xFF2979FF),
+      color: Theme.of(context).colorScheme.primary,
       onRefresh: _loadDashboard,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -173,10 +173,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     label: 'Orders',
                     value: '$_totalOrders',
                     icon: Icons.receipt_long_rounded,
-                    color: const Color(0xFF2979FF),
+                    color: Theme.of(context).colorScheme.primary,
                     bgGradient: [
-                      const Color(0xFF2979FF).withValues(alpha: 0.15),
-                      const Color(0xFF2979FF).withValues(alpha: 0.05),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
                     ],
                   ),
                   _kpiCard(
@@ -303,7 +303,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                     FlSpot(e.key.toDouble(), e.value))
                                 .toList(),
                             isCurved: true,
-                            color: const Color(0xFF2979FF),
+                            color: Theme.of(context).colorScheme.primary,
                             barWidth: 3,
                             isStrokeCapRound: true,
                             dotData: FlDotData(
@@ -311,7 +311,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               getDotPainter: (spot, percent, barData, index) =>
                                   FlDotCirclePainter(
                                 radius: 4,
-                                color: const Color(0xFF2979FF),
+                                color: Theme.of(context).colorScheme.primary,
                                 strokeWidth: 2,
                                 strokeColor: Colors.white,
                               ),
@@ -322,8 +322,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
-                                  const Color(0xFF2979FF).withValues(alpha: 0.25),
-                                  const Color(0xFF2979FF).withValues(alpha: 0.0),
+                                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.0),
                                 ],
                               ),
                             ),
@@ -417,13 +417,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       : const Color(0xFFF0EEFF),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFF2979FF).withValues(alpha: 0.2),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.rocket_launch_rounded,
-                        size: 48, color: Color(0xFF2979FF)),
+                    Icon(Icons.rocket_launch_rounded,
+                        size: 48, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(height: 12),
                     Text('Welcome to your Admin Dashboard!',
                         style: context.textTheme.titleMedium?.copyWith(
@@ -452,7 +452,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           icon: const Icon(Icons.category, size: 18),
                           label: const Text('Add Categories'),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF2979FF),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         FilledButton.icon(
@@ -461,7 +461,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           icon: const Icon(Icons.add_shopping_cart, size: 18),
                           label: const Text('Add Products'),
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF2979FF),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ],
