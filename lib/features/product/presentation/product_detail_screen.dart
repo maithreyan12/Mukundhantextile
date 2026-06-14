@@ -1,0 +1,559 @@
+import 'package:flutter/material.dart';
+import '../../../shared/widgets/responsive_wrapper.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/utils/extensions.dart';
+import '../../../shared/widgets/cached_image.dart';
+import '../../../shared/widgets/price_text.dart';
+import '../../../shared/widgets/rating_stars.dart';
+import '../../../shared/widgets/shimmer_loading.dart';
+import '../../../shared/widgets/error_widget.dart';
+import '../../wishlist/bloc/wishlist_cubit.dart';
+import '../../cart/bloc/cart_cubit.dart';
+import '../bloc/product_detail_cubit.dart';
+import '../../../data/models/product.dart';
+import '../../../shared/widgets/premium_button.dart';
+import '../../../shared/widgets/size_selector.dart';
+
+class ProductDetailScreen extends StatefulWidget {
+  final String productId;
+
+  const ProductDetailScreen({super.key, required this.productId});
+
+  @override
+  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
+}
+
+class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  int _currentImageIndex = 0;
+  final PageController _pageController = PageController();
+  String? _selectedSize;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductDetailCubit>().loadProduct(widget.productId);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ResponsiveWrapper(
+        maxWidth: 800,
+        child: BlocBuilder<ProductDetailCubit, ProductDetailState>(
+        builder: (context, state) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.error != null && state.product == null) {
+            return AppErrorWidget(
+              message: state.error!,
+              onRetry: () => context
+                  .read<ProductDetailCubit>()
+                  .loadProduct(widget.productId),
+            );
+          }
+          final product = state.product;
+          if (product == null) {
+            return const ShimmerLoading(height: double.infinity);
+          }
+
+          return CustomScrollView(
+            slivers: [
+              // ── Image Gallery ──────────────────────────
+              SliverAppBar(
+                expandedHeight: MediaQuery.of(context).size.height * 0.70,
+                pinned: true,
+                leading: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded,
+                        size: 18, color: Colors.black),
+                  ),
+                  onPressed: () => context.pop(),
+                ),
+                actions: [
+                  BlocBuilder<WishlistCubit, WishlistState>(
+                    builder: (context, wishState) {
+                      final inWishlist =
+                          wishState.wishlistIds.contains(product.id);
+                      return IconButton(
+                        icon: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            inWishlist
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            size: 18,
+                            color: inWishlist
+                                ? const Color(0xFFFF6B6B)
+                                : Colors.black,
+                          ),
+                        ),
+                        onPressed: () => context
+                            .read<WishlistCubit>()
+                            .toggleWishlist(product.id),
+                      );
+                    },
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    children: [
+                      PageView.builder(
+                        controller: _pageController,
+                        itemCount:
+                            product.images.isEmpty ? 1 : product.images.length,
+                        onPageChanged: (i) =>
+                            setState(() => _currentImageIndex = i),
+                        itemBuilder: (_, i) {
+                          return Hero(
+                            tag: 'product-${product.id}',
+                            child: CachedImage(
+                              imageUrl: product.images.isNotEmpty
+                                  ? product.images[i]
+                                  : null,
+                              fit: BoxFit.cover,
+                              placeholderIcon: Icons.shopping_bag_outlined,
+                            ),
+                          );
+                        },
+                      ),
+                      if (product.images.length > 1)
+                        Positioned(
+                          bottom: 16,
+                          left: 0,
+                          right: 0,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(
+                              product.images.length,
+                              (i) => AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                width: i == _currentImageIndex ? 24 : 8,
+                                height: 8,
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 3),
+                                decoration: BoxDecoration(
+                                  color: i == _currentImageIndex
+                                      ? const Color(0xFF2979FF)
+                                      : Colors.white54,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (product.hasDiscount)
+                        Positioned(
+                          top: 100,
+                          left: 16,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF6B6B),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '-${product.discountPercent}% OFF',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── Product Info ───────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (product.categoryName != null)
+                        Text(
+                          product.categoryName!.toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFF2979FF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      const SizedBox(height: 8),
+                      Text(product.name,
+                          style: context.textTheme.headlineMedium),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          RatingStars(rating: product.rating),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${product.rating} (${product.reviewCount} reviews)',
+                            style: context.textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      PriceText(
+                        price: product.price,
+                        discountPrice: product.discountPrice,
+                        priceStyle: context.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: context.isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ── Size Selector ──────────────────────
+                      Text('Size', style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      )),
+                      const SizedBox(height: 12),
+                      SizeSelector(
+                        sizes: const ['S', 'M', 'L', 'XL', 'OVERSIZED'],
+                        initialSize: _selectedSize,
+                        onSizeSelected: (size) => _selectedSize = size,
+                      ),
+                      const SizedBox(height: 32),
+                      Text('Description',
+                          style: context.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text(product.description,
+                          style: context.textTheme.bodyMedium?.copyWith(
+                            height: 1.6,
+                          )),
+                      const SizedBox(height: 16),
+                      // Stock info
+                      Row(
+                        children: [
+                          Icon(
+                            product.inStock
+                                ? Icons.check_circle_outline
+                                : Icons.cancel_outlined,
+                            size: 18,
+                            color: product.inStock
+                                ? (context.isDarkMode ? Colors.white : Colors.black)
+                                : const Color(0xFFFF6B6B),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            product.inStock
+                                ? 'In Stock (${product.stock})'
+                                : 'Out of Stock',
+                            style: TextStyle(
+                              color: product.inStock
+                                  ? (context.isDarkMode ? Colors.white : Colors.black)
+                                  : const Color(0xFFFF6B6B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      const Divider(),
+                      const SizedBox(height: 16),
+
+                      // ── Reviews ────────────────────────
+                      Text(
+                        'Reviews (${state.reviews.length})',
+                        style: context.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      ...state.reviews.take(5).map((review) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: context.isDarkMode
+                                    ? Colors.white.withValues(alpha: 0.04)
+                                    : Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor:
+                                            const Color(0xFF2979FF)
+                                                .withValues(alpha: 0.1),
+                                        child: Text(
+                                          (review.userName ?? 'U')[0]
+                                              .toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Color(0xFF2979FF),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              review.userName ?? 'User',
+                                              style: context
+                                                  .textTheme.labelLarge,
+                                            ),
+                                            RatingStars(
+                                              rating:
+                                                  review.rating.toDouble(),
+                                              size: 14,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        review.createdAt.timeAgo,
+                                        style: context.textTheme.labelSmall,
+                                      ),
+                                    ],
+                                  ),
+                                  if (review.comment != null &&
+                                      review.comment!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Text(review.comment!,
+                                        style: context.textTheme.bodySmall),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          )),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+      ),
+      bottomNavigationBar: BlocBuilder<ProductDetailCubit, ProductDetailState>(
+        builder: (context, state) {
+          if (state.product == null) return const SizedBox.shrink();
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.isDarkMode
+                  ? const Color(0xFF0D0D0D)
+                  : Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              minimum: const EdgeInsets.only(bottom: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _showCustomizeBottomSheet(context, state.product!),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        side: BorderSide(color: context.isDarkMode ? Colors.white24 : Colors.black26),
+                      ),
+                      child: const FittedBox(fit: BoxFit.scaleDown, child: Text('CUSTOMIZE')),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PremiumButton(
+                      onPressed: state.product!.inStock
+                          ? () {
+                              if (_selectedSize == null) {
+                                context.showSnackBar('Please select a size', isError: true);
+                                return;
+                              }
+                              context.read<CartCubit>().addToCart(
+                                    productId: state.product!.id,
+                                    variant: {'size': _selectedSize},
+                                  );
+                              context.showSuccessSnackBar('Added to cart!');
+                            }
+                          : null,
+                      backgroundColor: const Color(0xFFEAEAEA),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          state.product!.inStock ? 'ADD TO CART' : 'OUT OF STOCK',
+                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showCustomizeBottomSheet(BuildContext context, Product product) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.isDarkMode ? const Color(0xFF141414) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: Column(
+            children: [
+              // Handle drag
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  height: 4,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade600,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    Text('Customize Your Style', style: context.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    )),
+                    const SizedBox(height: 24),
+                    // Mockup Image
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF0D0D0D) : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: context.isDarkMode ? const Color(0xFF333333) : Colors.grey.shade300),
+                      ),
+                      child: Center(
+                        child: CachedImage(
+                          imageUrl: product.primaryImage,
+                          width: 150,
+                          height: 150,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    Text('Placement', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: ['Front', 'Back', 'Sleeve'].map((place) => Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: place == 'Front' ? const Color(0xFFEAEAEA) : Colors.grey.shade700),
+                            borderRadius: BorderRadius.circular(8),
+                            color: place == 'Front' ? const Color(0xFFEAEAEA).withValues(alpha: 0.1) : Colors.transparent,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(place, style: TextStyle(
+                            color: place == 'Front' ? const Color(0xFFEAEAEA) : Colors.grey.shade400,
+                            fontWeight: FontWeight.w600,
+                          )),
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text('Custom Text / Graphic', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 12),
+                    TextField(
+                      decoration: const InputDecoration(
+                        hintText: "Enter your custom name or text...",
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text('Print Color', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [Colors.white, const Color(0xFFEAEAEA), Colors.red, Colors.blue].map((color) => Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24, width: 2),
+                        ),
+                      )).toList(),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+              // Bottom Action
+              Padding(
+                padding: const EdgeInsets.all(24).copyWith(top: 12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: PremiumButton(
+                    onPressed: () {
+                      if (_selectedSize == null) {
+                        context.showSnackBar('Please select a size first', isError: true);
+                        return;
+                      }
+                      Navigator.pop(context);
+                      context.read<CartCubit>().addToCart(
+                        productId: product.id,
+                        variant: {'size': _selectedSize, 'isCustomized': true},
+                      );
+                      context.showSuccessSnackBar('Custom design added to cart!');
+                    },
+                    backgroundColor: const Color(0xFFEAEAEA),
+                    child: const FittedBox(fit: BoxFit.scaleDown, child: Text('CONFIRM & ADD TO CART', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800))),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

@@ -1,0 +1,19 @@
+name: jni_flutter
+description: Vendored minimal copy of jni_flutter
+version: 1.0.1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.35.6'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  jni: ^1.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.github.dart_lang.jni_flutter
+        pluginClass: JniFlutterPlugin

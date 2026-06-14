@@ -1,0 +1,20 @@
+# Copyright (c) 2022, the Dart project authors.
+
+name: jni
+description: A library to access JNI from Dart and Flutter (vendored minimal copy).
+version: 1.0.0
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.35.6'
+
+dependencies:
+  ffi: ^2.1.3
+  plugin_platform_interface: ^2.1.8
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+        package: com.github.dart_lang.jni
