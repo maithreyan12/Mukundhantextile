@@ -46,7 +46,7 @@ class _CustomerShellState extends State<CustomerShell> {
   // ── Desktop Top Navigation Bar (Flipkart-style) ─────────
   PreferredSizeWidget _buildDesktopAppBar(BuildContext context) {
     return PreferredSize(
-      preferredSize: const Size.fromHeight(64),
+      preferredSize: const Size.fromHeight(65),
       child: Container(
         decoration: BoxDecoration(
           color: context.isDarkMode
@@ -54,11 +54,19 @@ class _CustomerShellState extends State<CustomerShell> {
               : Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 1),
             ),
           ],
+          border: Border(
+            bottom: BorderSide(
+              color: context.isDarkMode
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)
+                  : Colors.grey.shade200,
+              width: 1,
+            ),
+          ),
         ),
         child: SafeArea(
           child: Center(

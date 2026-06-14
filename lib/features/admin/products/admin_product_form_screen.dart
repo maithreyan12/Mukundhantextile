@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../../core/constants.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../core/utils/validators.dart';
@@ -12,6 +13,7 @@ import '../../../data/repositories/product_repository.dart';
 import '../../../data/repositories/storage_repository.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/premium_button.dart';
+import '../../../shared/utils/image_picker_cropper.dart';
 
 class AdminProductFormScreen extends StatefulWidget {
   final String? productId;
@@ -70,7 +72,11 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   }
 
   Future<void> _pickImages() async {
-    final files = await _picker.pickMultiImage();
+    final files = await ImagePickerCropper.pickMultipleAndCrop(
+      context,
+      preset: CropAspectRatioPreset.square,
+      title: 'Crop Product Photo',
+    );
     if (files.isNotEmpty) {
       setState(() {
         _newImages.addAll(files);

@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── Banner Carousel ─────────────────────
                 if (state.isLoading)
                   SliverToBoxAdapter(child: ShimmerLoading.banner())
-                else if (state.banners.isNotEmpty)
+                else
                   SliverToBoxAdapter(
                     child: Center(
                       child: ConstrainedBox(
@@ -111,152 +111,135 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(isDesktop ? 12 : 0),
-                            child: CarouselSlider.builder(
-                              itemCount: state.banners.length,
-                              options: CarouselOptions(
-                                height: isDesktop ? 360 : 400,
-                                autoPlay: true,
-                                enlargeCenterPage: false,
-                                viewportFraction: 1.0,
-                                autoPlayInterval: const Duration(seconds: 8),
-                              ),
-                              itemBuilder: (_, index, _) {
-                                final banner = state.banners[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    if (banner.targetType == 'product' &&
-                                        banner.targetId != null) {
-                                      context.push('/product/${banner.targetId}');
-                                    } else if (banner.targetType == 'category' &&
-                                        banner.targetId != null) {
-                                      context.push(
-                                          '/products?category=${banner.targetId}');
-                                    }
-                                  },
-                                  child: Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      CachedImage(
-                                        imageUrl: banner.imageUrl,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover,
-                                        placeholderIcon: Icons.camera_alt_outlined,
-                                      ),
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              Colors.black.withValues(alpha: 0.7),
-                                            ]
-                                          ),
+                            child: state.banners.isNotEmpty
+                                ? CarouselSlider.builder(
+                                    itemCount: state.banners.length,
+                                    options: CarouselOptions(
+                                      height: isDesktop ? 400 : 280,
+                                      autoPlay: true,
+                                      enlargeCenterPage: false,
+                                      viewportFraction: 1.0,
+                                      autoPlayInterval: const Duration(seconds: 6),
+                                    ),
+                                    itemBuilder: (_, index, _) {
+                                      final banner = state.banners[index];
+                                      return GestureDetector(
+                                        onTap: () {
+                                          if (banner.targetType == 'product' &&
+                                              banner.targetId != null) {
+                                            context.push('/product/${banner.targetId}');
+                                          } else if (banner.targetType == 'category' &&
+                                              banner.targetId != null) {
+                                            context.push(
+                                                '/products?category=${banner.targetId}');
+                                          }
+                                        },
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            CachedImage(
+                                              imageUrl: banner.imageUrl,
+                                              width: double.infinity,
+                                              fit: BoxFit.cover,
+                                              placeholderIcon: Icons.camera_alt_outlined,
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.centerLeft,
+                                                  end: Alignment.centerRight,
+                                                  colors: [
+                                                    Colors.black.withValues(alpha: 0.75),
+                                                    Colors.black.withValues(alpha: 0.0),
+                                                  ]
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              bottom: isDesktop ? 60 : 30,
+                                              left: isDesktop ? 48 : 24,
+                                              right: isDesktop ? 400 : 80,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    (banner.title != null && banner.title!.isNotEmpty)
+                                                        ? banner.title!.replaceAll('\\n', '\n')
+                                                        : 'NEW COLLECTION',
+                                                    style: context.textTheme.displaySmall?.copyWith(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w900,
+                                                      height: 1.1,
+                                                      fontSize: isDesktop ? 42 : 28,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                      Positioned(
-                                        bottom: 40,
-                                        left: 24,
-                                        child: Text(
-                                          (banner.title != null && banner.title!.isNotEmpty)
-                                              ? banner.title!.replaceAll('\\n', '\n')
-                                              : 'LIMITED\nDROP',
-                                          style: context.textTheme.displayLarge?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w900,
-                                            height: 1.1,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
+                                      );
+                                    },
+                                  )
+                                : _buildDefaultHeroBanners(context, isDesktop),
                           ),
                         ),
                       ),
                     ),
                   ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                // ── Promo Strip ─────────────────────────
+                if (!state.isLoading)
+                  SliverToBoxAdapter(child: _buildPromoStrip(context, isDesktop)),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                 // ── Categories ──────────────────────────
                 if (state.isLoading)
                   SliverToBoxAdapter(
                       child: ShimmerLoading.horizontalList(height: 90))
                 else if (state.categories.isNotEmpty) ...[
-                  _sectionHeader('CATEGORIES', onSeeAll: () {}),
+                  _sectionHeader('SHOP BY CATEGORY', onSeeAll: () {}),
                   SliverToBoxAdapter(
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1400),
-                        child: SizedBox(
-                          height: 100,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: Responsive.horizontalPadding(context),
-                            ),
-                            itemCount: state.categories.length,
-                            separatorBuilder: (_, _) => SizedBox(
-                              width: isDesktop ? 24 : 16,
-                            ),
-                            itemBuilder: (_, i) {
-                              final cat = state.categories[i];
-                              return GestureDetector(
-                                onTap: () => context
-                                    .push('/products?category=${cat.id}'),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: isDesktop ? 68 : 60,
-                                      height: isDesktop ? 68 : 60,
-                                      decoration: BoxDecoration(
-                                        color: context.isDarkMode ? const Color(0xFF1A1A1A) : Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: context.isDarkMode ? const Color(0xFF333333) : Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      child: cat.imageUrl != null
-                                          ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: CachedImage(
-                                                imageUrl: cat.imageUrl,
-                                                width: isDesktop ? 68 : 60,
-                                                height: isDesktop ? 68 : 60,
-                                              ),
-                                            )
-                                          : Icon(Icons.category_outlined,
-                                              color: Theme.of(context).colorScheme.primary),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    SizedBox(
-                                      width: isDesktop ? 80 : 70,
-                                      child: Text(
-                                        cat.name,
-                                        style: context.textTheme.labelSmall?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: 0.5,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: Responsive.horizontalPadding(context),
                           ),
+                          child: isDesktop
+                              ? GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: state.categories.length > 6 ? 6 : state.categories.length,
+                                    childAspectRatio: 1.0,
+                                    crossAxisSpacing: 16,
+                                    mainAxisSpacing: 16,
+                                  ),
+                                  itemCount: state.categories.length,
+                                  itemBuilder: (_, i) => _buildCategoryCard(state.categories[i], i, isDesktop),
+                                )
+                              : SizedBox(
+                                  height: 120,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: state.categories.length,
+                                    separatorBuilder: (_, _) => const SizedBox(width: 14),
+                                    itemBuilder: (_, i) => SizedBox(
+                                      width: 100,
+                                      child: _buildCategoryCard(state.categories[i], i, isDesktop),
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                     ),
                   ),
                 ],
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                 // ── New Arrivals ────────────────────────
                 if (state.isLoading)
@@ -270,7 +253,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       : _horizontalProductList(state.newArrivals),
                 ],
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+                // ── Mid Banner ──────────────────────────
+                if (!state.isLoading)
+                  SliverToBoxAdapter(child: _buildMidBanner(context, isDesktop)),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                 // ── Best Sellers ────────────────────────
                 if (state.isLoading)
@@ -284,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : _horizontalProductList(state.bestSellers),
                 ],
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
 
                 // ── Featured ────────────────────────────
                 if (state.isLoading)
@@ -354,27 +343,63 @@ class _HomeScreenState extends State<HomeScreen> {
           constraints: const BoxConstraints(maxWidth: 1400),
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              Responsive.horizontalPadding(context), 16,
-              Responsive.horizontalPadding(context), 12,
+              Responsive.horizontalPadding(context), 20,
+              Responsive.horizontalPadding(context), 14,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: context.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.0,
-                )),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(title, style: context.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      fontSize: Responsive.isLargeScreen(context) ? 22 : 17,
+                    )),
+                  ],
+                ),
                 if (onSeeAll != null)
                   GestureDetector(
                     onTap: onSeeAll,
                     child: MouseRegion(
                       cursor: SystemMouseCursors.click,
-                      child: Text(
-                        'VIEW ALL',
-                        style: context.textTheme.labelLarge?.copyWith(
-                          color: context.isDarkMode ? Colors.white70 : const Color(0xFF1A1A1A),
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: context.isDarkMode ? Colors.white24 : Colors.grey.shade300,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'VIEW ALL',
+                              style: context.textTheme.labelSmall?.copyWith(
+                                color: context.isDarkMode ? Colors.white70 : const Color(0xFF1A1A1A),
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                                fontSize: 11,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 10,
+                              color: context.isDarkMode ? Colors.white70 : const Color(0xFF1A1A1A),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -453,6 +478,559 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 );
               },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Default Hero Banners (when no admin banners) ────────
+  Widget _buildDefaultHeroBanners(BuildContext context, bool isDesktop) {
+    final bannerData = [
+      {
+        'gradient': const [Color(0xFF1A1A2E), Color(0xFF16213E)],
+        'accent': const Color(0xFFE94560),
+        'title': 'MUKUNDHAN\nTEX & READYMADES',
+        'subtitle': 'All Kinds of Clothes Under One Roof',
+        'icon': Icons.storefront_rounded,
+      },
+      {
+        'gradient': const [Color(0xFF0F3460), Color(0xFF533483)],
+        'accent': const Color(0xFFE94560),
+        'title': 'PREMIUM\nSILK SAREES',
+        'subtitle': 'Kanchipuram · Banarasi · Mysore Silk',
+        'icon': Icons.diamond_rounded,
+      },
+      {
+        'gradient': const [Color(0xFF2C3333), Color(0xFF395B64)],
+        'accent': const Color(0xFFF0C38E),
+        'title': 'READYMADE\nCOLLECTION',
+        'subtitle': 'Men · Women · Kids — Latest Styles',
+        'icon': Icons.checkroom_rounded,
+      },
+    ];
+
+    return CarouselSlider.builder(
+      itemCount: bannerData.length,
+      options: CarouselOptions(
+        height: isDesktop ? 400 : 280,
+        autoPlay: true,
+        enlargeCenterPage: false,
+        viewportFraction: 1.0,
+        autoPlayInterval: const Duration(seconds: 5),
+      ),
+      itemBuilder: (_, index, _) {
+        final data = bannerData[index];
+        final gradientColors = data['gradient'] as List<Color>;
+        final accent = data['accent'] as Color;
+
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+            ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Decorative pattern overlay
+              Positioned(
+                right: isDesktop ? -60 : -40,
+                top: isDesktop ? -40 : -20,
+                child: Container(
+                  width: isDesktop ? 500 : 300,
+                  height: isDesktop ? 500 : 300,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.03),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: isDesktop ? 60 : 20,
+                bottom: isDesktop ? -80 : -50,
+                child: Container(
+                  width: isDesktop ? 350 : 200,
+                  height: isDesktop ? 350 : 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              // Icon on right side
+              if (isDesktop)
+                Positioned(
+                  right: 100,
+                  top: 0,
+                  bottom: 0,
+                  child: Center(
+                    child: Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.3),
+                          width: 2,
+                        ),
+                      ),
+                      child: Icon(
+                        data['icon'] as IconData,
+                        size: 80,
+                        color: accent.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                ),
+              // Text content
+              Positioned(
+                left: isDesktop ? 64 : 24,
+                bottom: isDesktop ? 64 : 32,
+                right: isDesktop ? 350 : 24,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: accent.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(
+                        'VELLORE',
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 3,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      data['title'] as String,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: isDesktop ? 44 : 28,
+                        fontWeight: FontWeight.w900,
+                        height: 1.1,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      data['subtitle'] as String,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: isDesktop ? 18 : 14,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 28 : 20,
+                        vertical: isDesktop ? 14 : 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accent,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'SHOP NOW',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isDesktop ? 14 : 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ── Promotional Features Strip ──────────────────────────
+  Widget _buildPromoStrip(BuildContext context, bool isDesktop) {
+    final features = [
+      {'icon': Icons.local_shipping_outlined, 'label': 'Free Delivery', 'sub': 'On orders above ₹999'},
+      {'icon': Icons.verified_outlined, 'label': '100% Genuine', 'sub': 'Quality fabrics'},
+      {'icon': Icons.autorenew_rounded, 'label': 'Easy Returns', 'sub': '7-day return policy'},
+      {'icon': Icons.support_agent_rounded, 'label': '24/7 Support', 'sub': 'Call: +91 97517 97827'},
+    ];
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1400),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.horizontalPadding(context),
+            vertical: 8,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? 32 : 16,
+              vertical: isDesktop ? 20 : 16,
+            ),
+            decoration: BoxDecoration(
+              color: context.isDarkMode
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200,
+              ),
+              boxShadow: context.isDarkMode
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 12,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+            child: isDesktop
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: features.map((f) => _promoFeatureItem(
+                      f['icon'] as IconData,
+                      f['label'] as String,
+                      f['sub'] as String,
+                      isDesktop,
+                    )).toList(),
+                  )
+                : Wrap(
+                    alignment: WrapAlignment.spaceAround,
+                    runSpacing: 16,
+                    children: features.map((f) => SizedBox(
+                      width: MediaQuery.of(context).size.width / 2 - 40,
+                      child: _promoFeatureItem(
+                        f['icon'] as IconData,
+                        f['label'] as String,
+                        f['sub'] as String,
+                        isDesktop,
+                      ),
+                    )).toList(),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _promoFeatureItem(IconData icon, String label, String sub, bool isDesktop) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: isDesktop ? 44 : 36,
+          height: isDesktop ? 44 : 36,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.primary,
+            size: isDesktop ? 22 : 18,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: isDesktop ? 14 : 12,
+                color: context.isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+            Text(
+              sub,
+              style: TextStyle(
+                fontSize: isDesktop ? 12 : 10,
+                color: context.isDarkMode ? Colors.white54 : Colors.black45,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Premium Category Card ──────────────────────────────
+  Widget _buildCategoryCard(dynamic cat, int index, bool isDesktop) {
+    // Gradient colors for different categories
+    final gradients = [
+      [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+      [const Color(0xFFF093FB), const Color(0xFFF5576C)],
+      [const Color(0xFF4FACFE), const Color(0xFF00F2FE)],
+      [const Color(0xFF43E97B), const Color(0xFF38F9D7)],
+      [const Color(0xFFF6D365), const Color(0xFFFDA085)],
+      [const Color(0xFFA18CD1), const Color(0xFFFBC2EB)],
+      [const Color(0xFF89F7FE), const Color(0xFF66A6FF)],
+      [const Color(0xFFFCCB90), const Color(0xFFD57EEB)],
+    ];
+
+    // Auto-match icon based on category name
+    IconData categoryIcon = Icons.category_rounded;
+    final name = cat.name.toString().toLowerCase();
+    if (name.contains('men') && !name.contains('women')) {
+      categoryIcon = Icons.man_rounded;
+    } else if (name.contains('women') || name.contains('ladies') || name.contains('girl')) {
+      categoryIcon = Icons.woman_rounded;
+    } else if (name.contains('kid') || name.contains('child') || name.contains('baby')) {
+      categoryIcon = Icons.child_care_rounded;
+    } else if (name.contains('saree') || name.contains('sari')) {
+      categoryIcon = Icons.dry_cleaning_rounded;
+    } else if (name.contains('shirt') || name.contains('top')) {
+      categoryIcon = Icons.checkroom_rounded;
+    } else if (name.contains('pant') || name.contains('bottom') || name.contains('trouser')) {
+      categoryIcon = Icons.straighten_rounded;
+    } else if (name.contains('cotton')) {
+      categoryIcon = Icons.eco_rounded;
+    } else if (name.contains('silk')) {
+      categoryIcon = Icons.diamond_rounded;
+    } else if (name.contains('access') || name.contains('jewel')) {
+      categoryIcon = Icons.watch_rounded;
+    } else if (name.contains('foot') || name.contains('shoe') || name.contains('chapp')) {
+      categoryIcon = Icons.ice_skating_rounded;
+    }
+
+    final colors = gradients[index % gradients.length];
+
+    return GestureDetector(
+      onTap: () => context.push('/products?category=${cat.id}'),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors[0].withValues(alpha: context.isDarkMode ? 0.3 : 0.15),
+                colors[1].withValues(alpha: context.isDarkMode ? 0.2 : 0.08),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: colors[0].withValues(alpha: context.isDarkMode ? 0.3 : 0.2),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Category image or gradient icon
+              cat.imageUrl != null
+                  ? Container(
+                      width: isDesktop ? 56 : 48,
+                      height: isDesktop ? 56 : 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors[0].withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedImage(
+                          imageUrl: cat.imageUrl,
+                          width: isDesktop ? 56 : 48,
+                          height: isDesktop ? 56 : 48,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: isDesktop ? 56 : 48,
+                      height: isDesktop ? 56 : 48,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: colors,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors[0].withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        categoryIcon,
+                        color: Colors.white,
+                        size: isDesktop ? 26 : 22,
+                      ),
+                    ),
+              SizedBox(height: isDesktop ? 12 : 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  cat.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: isDesktop ? 13 : 11,
+                    color: context.isDarkMode ? Colors.white : Colors.black87,
+                    letterSpacing: 0.3,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Mid-page Promotional Banner ─────────────────────────
+  Widget _buildMidBanner(BuildContext context, bool isDesktop) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1400),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: Responsive.horizontalPadding(context),
+          ),
+          child: Container(
+            height: isDesktop ? 200 : 140,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0F3460), Color(0xFF533483)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(
+              children: [
+                // Decorative circles
+                Positioned(
+                  right: isDesktop ? -30 : -20,
+                  top: isDesktop ? -50 : -30,
+                  child: Container(
+                    width: isDesktop ? 200 : 120,
+                    height: isDesktop ? 200 : 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: isDesktop ? 80 : 40,
+                  bottom: isDesktop ? -40 : -20,
+                  child: Container(
+                    width: isDesktop ? 160 : 100,
+                    height: isDesktop ? 160 : 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFE94560).withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                // Text content
+                Padding(
+                  padding: EdgeInsets.all(isDesktop ? 40 : 20),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE94560).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                'SPECIAL OFFER',
+                                style: TextStyle(
+                                  color: const Color(0xFFE94560),
+                                  fontSize: isDesktop ? 12 : 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: isDesktop ? 12 : 8),
+                            Text(
+                              'Festival Collection Available',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isDesktop ? 28 : 18,
+                                fontWeight: FontWeight.w900,
+                                height: 1.2,
+                              ),
+                            ),
+                            SizedBox(height: isDesktop ? 8 : 4),
+                            Text(
+                              'Exclusive silk sarees & readymade outfits for every occasion',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: isDesktop ? 15 : 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isDesktop) ...[
+                        const SizedBox(width: 40),
+                        GestureDetector(
+                          onTap: () => context.push('/products'),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE94560),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'EXPLORE NOW',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -624,12 +1202,30 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 32),
               Divider(color: Colors.grey.shade800),
               const SizedBox(height: 16),
-              Text(
-                '© 2025 ${AppConstants.appName}. All rights reserved.',
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '© 2026 ${AppConstants.appName}. All rights reserved.',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on_outlined, size: 14, color: Colors.grey.shade600),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Proudly serving from Vellore, Tamil Nadu',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
