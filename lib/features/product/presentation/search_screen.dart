@@ -220,211 +220,227 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildRestingView(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── 1. Recent Searches (Circular Thumbnails) ──────────────────
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Recent Searches',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 90,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _recentSearches.length,
-              itemBuilder: (context, index) {
-                final item = _recentSearches[index];
-                return GestureDetector(
-                  onTap: () => _executeSearch(item['title']!),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Column(
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.grey.shade300, width: 1),
-                          ),
-                          child: ClipOval(
-                            child: CachedImage(
-                              imageUrl: item['image']!,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          item['title']!,
-                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, homeState) {
+        if (homeState.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final categories = homeState.categories;
+        final popularProducts = homeState.featured.take(6).toList();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── 1. Search by Category (Circular Thumbnails) ──────────────────
+              if (categories.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Search by Category',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
                   ),
-                );
-              },
-            ),
-          ),
-
-          const Divider(height: 32),
-
-          // ── 2. Recommended Stores For You ──────────────────────────────
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Recommended Stores For You',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 140,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: _recommendedStores.length,
-              itemBuilder: (context, index) {
-                final store = _recommendedStores[index];
-                return GestureDetector(
-                  onTap: () => _executeSearch(store['title']!),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Container(
-                      width: 120,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            CachedImage(
-                              imageUrl: store['image']!,
-                              fit: BoxFit.cover,
-                            ),
-                            Container(
-                              color: Colors.black.withValues(alpha: 0.3),
-                            ),
-                            Center(
-                              child: Text(
-                                store['title']!,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 12,
-                                  shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 95,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: categories.length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      return GestureDetector(
+                        onTap: () => _executeSearch(category.name),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 54,
+                                height: 54,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: context.isDarkMode ? Colors.white12 : Colors.grey.shade200,
+                                    width: 1,
+                                  ),
                                 ),
+                                child: ClipOval(
+                                  child: CachedImage(
+                                    imageUrl: category.imageUrl ?? '',
+                                    fit: BoxFit.cover,
+                                    placeholderIcon: Icons.category_outlined,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                category.name,
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const Divider(height: 32),
+              ],
+
+              // ── 2. Featured Collections ──────────────────────────────
+              if (categories.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Featured Collections',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 140,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: categories.take(4).length,
+                    itemBuilder: (context, index) {
+                      final category = categories[index];
+                      return GestureDetector(
+                        onTap: () => _executeSearch(category.name),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Container(
+                            width: 130,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  CachedImage(
+                                    imageUrl: category.imageUrl ?? '',
+                                    fit: BoxFit.cover,
+                                    placeholderIcon: Icons.category_outlined,
+                                  ),
+                                  Container(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                  ),
+                                  Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: Text(
+                                        category.name,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 12,
+                                          shadows: [Shadow(color: Colors.black, blurRadius: 4)],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const Divider(height: 32),
+              ],
+
+              // ── 3. Popular Products ─────────────────────────────────────────
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Popular Products',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (popularProducts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No products available.'),
+                )
+              else
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 8,
+                    childAspectRatio: 0.65,
+                  ),
+                  itemCount: popularProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = popularProducts[index];
+                    return GestureDetector(
+                      onTap: () => context.push('/product/${product.id}'),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                                child: CachedImage(
+                                  imageUrl: product.primaryImage,
+                                  fit: BoxFit.cover,
+                                  placeholderIcon: Icons.shopping_bag_outlined,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    product.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    product.effectivePrice.toCurrency,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          const Divider(height: 32),
-
-          // ── 3. Popular Products ─────────────────────────────────────────
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Popular Products',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(height: 12),
-          BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, homeState) {
-              final products = homeState.featured.take(6).toList();
-              if (products.isEmpty) {
-                return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Loading popular products...'),
-                );
-              }
-
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 8,
-                  childAspectRatio: 0.65,
+                    );
+                  },
                 ),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return GestureDetector(
-                    onTap: () => context.push('/product/${product.id}'),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-                              child: CachedImage(
-                                imageUrl: product.images.isNotEmpty ? product.images[0] : '',
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(6),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  product.price.toCurrency,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    color: Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            },
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

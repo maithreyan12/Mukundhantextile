@@ -179,6 +179,17 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  // ── Update Password ───────────────────────────────────
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      await Supabase.instance.client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
   // ── Sign Out ──────────────────────────────────────────
   Future<void> signOut() async {
     await _authRepo.signOut();

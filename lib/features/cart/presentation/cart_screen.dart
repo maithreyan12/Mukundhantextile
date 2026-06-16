@@ -8,7 +8,10 @@ import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/premium_button.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../data/models/address.dart';
+import '../../../data/models/product.dart';
+import '../../home/bloc/home_cubit.dart';
 import '../bloc/cart_cubit.dart';
+
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -26,6 +29,7 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     context.read<CartCubit>().loadCart();
+    context.read<HomeCubit>().loadHome();
     _loadDefaultAddress();
   }
 
@@ -196,62 +200,13 @@ class _CartScreenState extends State<CartScreen> {
   Widget _buildMobileLayout(BuildContext context, CartState state) {
     return Column(
       children: [
-        // Tab Header
-        Container(
-          color: Colors.white,
-          child: Row(
-            children: [
-              _buildTabItem('Flipkart (${state.itemCount})', isSelected: true),
-              _buildTabItem('Grocery', isSelected: false),
-              _buildTabItem('Minutes (2)', isSelected: false),
-            ],
-          ),
-        ),
-        
-        // Tab indicator underline
-        Container(
-          height: 2,
-          color: Colors.grey.shade200,
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 2,
-                  color: Colors.blue,
-                ),
-              ),
-              Expanded(child: const SizedBox.shrink()),
-              Expanded(child: const SizedBox.shrink()),
-            ],
-          ),
-        ),
-
-        // Offers promo banner
-        Container(
-          width: double.infinity,
-          color: Colors.blue.shade50.withValues(alpha: 0.5),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: const Row(
-            children: [
-              Text(
-                'View 2 more offers',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-
         // Address Header at the top
         _buildAddressHeader(context),
         
         // Cart Items & Details scrollable view
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(0),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
               // Items List
               ...state.items.map((item) => _buildCartItem(context, item)),
@@ -263,19 +218,19 @@ class _CartScreenState extends State<CartScreen> {
               
               // Safe Payments Badge
               Container(
-                color: Colors.grey.shade100,
+                color: context.isDarkMode ? Colors.white.withValues(alpha: 0.02) : Colors.grey.shade50,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.verified_user_sharp, size: 24, color: Colors.grey.shade400),
+                    Icon(Icons.verified_user_sharp, size: 24, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Safe and secure payments. Easy returns.\n100% Authentic products.',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade600,
+                          color: context.isDarkMode ? Colors.white60 : Colors.grey.shade600,
                           fontWeight: FontWeight.w500,
                           height: 1.4,
                         ),
@@ -317,75 +272,102 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildItemsMissedSection(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Items you may have missed',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, homeState) {
+        if (homeState.isLoading || homeState.featured.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        
+        final recommended = homeState.featured.take(6).toList();
+
+        return Container(
+          color: context.isDarkMode ? const Color(0xFF1A1A1A) : Colors.white,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Items you may have missed',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: context.isDarkMode ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: recommended.length,
+                  itemBuilder: (context, index) {
+                    final product = recommended[index];
+                    return _buildRecommendedItemCard(context, product);
+                  },
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 200,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                _buildMissedItemCard('Trendy Kid\'s Dress', '₹350', 'assets/saree_placeholder.jpg'),
-                _buildMissedItemCard('Soft Cotton Shirt', '₹450', 'assets/saree_placeholder.jpg'),
-                _buildMissedItemCard('Designer Saree Silk', '₹1,250', 'assets/saree_placeholder.jpg'),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildMissedItemCard(String name, String price, String imagePath) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+  Widget _buildRecommendedItemCard(BuildContext context, Product product) {
+    return GestureDetector(
+      onTap: () => context.push('/product/${product.id}'),
+      child: Container(
+        width: 140,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          color: context.isDarkMode ? const Color(0xFF252535) : Colors.white,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-              ),
-              child: const Center(
-                child: Icon(Icons.shopping_bag_outlined, color: Colors.grey, size: 32),
+                child: CachedImage(
+                  imageUrl: product.primaryImage,
+                  fit: BoxFit.cover,
+                  placeholderIcon: Icons.shopping_bag_outlined,
+                ),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  price,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: context.isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    product.effectivePrice.toCurrency,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -522,14 +504,10 @@ class _CartScreenState extends State<CartScreen> {
 
   // ── Price Details Card Widget ─────────────────────────────
   Widget _buildPriceDetailsCard(BuildContext context, CartState state) {
-    double totalMRP = 0;
-    for (var item in state.items) {
-      if (item.product != null) {
-        totalMRP += (item.product!.price * 1.45) * item.quantity;
-      }
-    }
-    double totalFees = 106.0;
-    double totalDiscount = totalMRP - state.total + totalFees;
+    double subtotal = state.subtotal;
+    double discount = state.discountAmount;
+    double deliveryFee = subtotal >= 3000 ? 0.0 : 100.0;
+    double total = subtotal - discount + deliveryFee;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -537,38 +515,45 @@ class _CartScreenState extends State<CartScreen> {
       decoration: BoxDecoration(
         color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
         border: Border(
-          top: BorderSide(color: Colors.grey.shade200, width: 8),
-          bottom: BorderSide(color: Colors.grey.shade200, width: 8),
+          top: BorderSide(color: context.isDarkMode ? Colors.white12 : Colors.grey.shade100, width: 8),
+          bottom: BorderSide(color: context.isDarkMode ? Colors.white12 : Colors.grey.shade100, width: 8),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Price Details',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 16),
-          _priceRow('MRP (incl. of all taxes)', totalMRP.toCurrency),
+          _priceRow('Subtotal', subtotal.toCurrency),
+          if (discount > 0) ...[
+            const SizedBox(height: 12),
+            _priceRow(
+              'Coupon Discount',
+              '-${discount.toCurrency}',
+              valueColor: const Color(0xFF2ED573),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Fees', style: TextStyle(fontSize: 13)),
+              const Text('Delivery Fee', style: TextStyle(fontSize: 13)),
               Text(
-                totalFees.toCurrency,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                deliveryFee == 0 ? 'FREE' : deliveryFee.toCurrency,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: deliveryFee == 0 ? const Color(0xFF2ED573) : Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ],
-          ),
-          const SizedBox(height: 12),
-          _priceRow(
-            'Discounts',
-            '-${totalDiscount.toCurrency}',
-            valueColor: const Color(0xFF2ED573),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 14),
@@ -585,15 +570,16 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               Text(
-                state.total.toCurrency,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+                total.toCurrency,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
             ],
           ),
-          if (totalDiscount > 0) ...[
+          if (discount > 0) ...[
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 14),
               child: Divider(height: 1),
@@ -606,7 +592,7 @@ class _CartScreenState extends State<CartScreen> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                'You will save ${totalDiscount.toCurrency} on this order',
+                'You will save ${discount.toCurrency} on this order!',
                 style: const TextStyle(
                   color: Color(0xFF2ED573),
                   fontWeight: FontWeight.bold,
@@ -640,12 +626,8 @@ class _CartScreenState extends State<CartScreen> {
 
   // ── Bottom Sticky Action Bar Widget ───────────────────────
   Widget _buildBottomStickyBar(BuildContext context, CartState state) {
-    double totalMRP = 0;
-    for (var item in state.items) {
-      if (item.product != null) {
-        totalMRP += (item.product!.price * 1.45) * item.quantity;
-      }
-    }
+    double deliveryFee = state.subtotal >= 3000 ? 0.0 : 100.0;
+    double total = state.subtotal - state.discountAmount + deliveryFee;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -667,19 +649,20 @@ class _CartScreenState extends State<CartScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  totalMRP.toCurrency,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    decoration: TextDecoration.lineThrough,
+                if (state.discountAmount > 0)
+                  Text(
+                    state.subtotal.toCurrency,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                      decoration: TextDecoration.lineThrough,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 2),
                 Row(
                   children: [
                     Text(
-                      state.total.toCurrency,
+                      total.toCurrency,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -693,19 +676,19 @@ class _CartScreenState extends State<CartScreen> {
             ),
             SizedBox(
               width: 160,
-              height: 46,
+              height: 48,
               child: ElevatedButton(
                 onPressed: () => context.push('/checkout'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFC200),
-                  foregroundColor: Colors.black,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(24),
                   ),
-                  elevation: 0,
+                  elevation: 2,
                 ),
                 child: const Text(
-                  'Place order',
+                  'Place Order',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
@@ -721,7 +704,7 @@ class _CartScreenState extends State<CartScreen> {
 
   // ── Shared: Cart Item Card ──────────────────────────────
   Widget _buildCartItem(BuildContext context, dynamic item) {
-    final product = item.product;
+    final Product? product = item.product as Product?;
     if (product == null) {
       return Container(
         padding: const EdgeInsets.all(12),
@@ -734,14 +717,29 @@ class _CartScreenState extends State<CartScreen> {
       );
     }
 
-    final double originalPriceSimulated = product.price * 1.35;
+    final double discountPercent = product.price > product.effectivePrice
+        ? ((product.price - product.effectivePrice) / product.price * 100)
+        : 0;
+
+    final String variantText = item.variant != null && item.variant!.isNotEmpty
+        ? item.variant!.entries.map((e) => '${e.key.toUpperCase()}: ${e.value}').join(', ')
+        : '';
 
     return Container(
       padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
         color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200,
         ),
       ),
       child: Column(
@@ -750,56 +748,32 @@ class _CartScreenState extends State<CartScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image
+              // Product Image & Qty Selector
               Column(
                 children: [
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: CachedImage(
-                          imageUrl: product.primaryImage,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                          placeholderIcon: Icons.shopping_bag_outlined,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          color: Colors.black.withValues(alpha: 0.6),
-                          child: const Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.zoom_in, size: 10, color: Colors.white),
-                                SizedBox(width: 2),
-                                Text(
-                                  'Zoom',
-                                  style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedImage(
+                      imageUrl: product.primaryImage,
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      placeholderIcon: Icons.shopping_bag_outlined,
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  // Qty Dropdown
+                  // Qty Selector Dropdown
                   InkWell(
                     onTap: () => _showQtyPickerDialog(context, item),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: context.isDarkMode ? Colors.white24 : Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(6),
+                        color: context.isDarkMode ? Colors.white.withValues(alpha: 0.03) : Colors.grey.shade50,
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             'Qty: ${item.quantity}',
@@ -808,8 +782,8 @@ class _CartScreenState extends State<CartScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 2),
-                          const Icon(Icons.arrow_drop_down, size: 16),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down_rounded, size: 14),
                         ],
                       ),
                     ),
@@ -817,135 +791,79 @@ class _CartScreenState extends State<CartScreen> {
                 ],
               ),
               const SizedBox(width: 16),
-              // Product Info
+              
+              // Product details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product.name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '11.6 Inch, Graphite Grey, 1.23 Kg',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
+                    if (variantText.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        variantText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.isDarkMode ? Colors.white60 : Colors.grey.shade600,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    // Rating Block
-                    Row(
-                      children: [
-                        Row(
-                          children: List.generate(5, (idx) {
-                            return const Icon(Icons.star, size: 12, color: Colors.green);
-                          }),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '4.0',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(3,097)',
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                          child: const Text(
-                            'Assured',
-                            style: TextStyle(color: Colors.blue, fontSize: 8, fontWeight: FontWeight.w900),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Price Row
+                    ],
+                    const SizedBox(height: 12),
+                    
+                    // Pricing Layout
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        const Icon(Icons.arrow_downward, size: 12, color: Colors.green),
-                        const Text(
-                          '26%',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          originalPriceSimulated.toCurrency,
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
                         Text(
                           product.effectivePrice.toCurrency,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
+                        if (product.price > product.effectivePrice) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            product.price.toCurrency,
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 13,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${discountPercent.toStringAsFixed(0)}% Off',
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${(product.effectivePrice - 330).toCurrency} with UPI offer + more',
-                      style: const TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '+ ₹106 Protect Promise Fee',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Text(
-                          'Or Pay ${(product.effectivePrice - 500).toCurrency} + ',
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                        ),
-                        const Icon(Icons.monetization_on, size: 12, color: Colors.amber),
-                        const Text(
-                          ' 10',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      '20 Offers Available',
-                      style: TextStyle(color: Colors.green, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.local_shipping, size: 14, color: Colors.black87),
-                        SizedBox(width: 4),
+                        Icon(Icons.check_circle_outline_rounded, size: 14, color: Colors.green.shade600),
+                        const SizedBox(width: 4),
                         Text(
-                          'EXPRESS Delivery by tomorrow',
+                          'In Stock · Fast Shipping',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -956,40 +874,34 @@ class _CartScreenState extends State<CartScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1),
+          Divider(height: 1, color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200),
           const SizedBox(height: 8),
+          
           // Actions Row
           Row(
             children: [
               Expanded(
                 child: TextButton.icon(
                   onPressed: () => context.read<CartCubit>().removeItem(item.id),
-                  icon: const Icon(Icons.delete_outline, size: 18, color: Colors.grey),
+                  icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
                   label: const Text(
                     'Remove',
-                    style: TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
-              Container(width: 1, height: 24, color: Colors.grey.shade300),
+              Container(width: 1, height: 20, color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300),
               Expanded(
                 child: TextButton.icon(
-                  onPressed: () => context.showSnackBar('Saved for later!'),
-                  icon: const Icon(Icons.bookmark_border, size: 18, color: Colors.grey),
-                  label: const Text(
-                    'Save for later',
-                    style: TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Container(width: 1, height: 24, color: Colors.grey.shade300),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: () => context.showSnackBar('Buying this now!'),
-                  icon: const Icon(Icons.flash_on, size: 18, color: Colors.grey),
-                  label: const Text(
-                    'Buy this now',
-                    style: TextStyle(color: Colors.black87, fontSize: 13, fontWeight: FontWeight.bold),
+                  onPressed: () => context.showSnackBar('Saved to Wishlist!'),
+                  icon: const Icon(Icons.favorite_border_rounded, size: 18, color: Colors.grey),
+                  label: Text(
+                    'Save to Wishlist',
+                    style: TextStyle(
+                      color: context.isDarkMode ? Colors.white70 : Colors.black87,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -999,6 +911,7 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
   }
+
 
   void _showQtyPickerDialog(BuildContext context, dynamic item) {
     showDialog(

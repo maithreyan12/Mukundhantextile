@@ -142,24 +142,27 @@ class _AdminBrowseSettingsScreenState extends State<AdminBrowseSettingsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Browse Page Controls',
-                                style: context.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Browse Page Controls',
+                                  style: context.textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Control categories, pricing, and labels for home navigation tiles',
-                                style: context.textTheme.bodyMedium?.copyWith(
-                                  color: context.isDarkMode ? Colors.white60 : Colors.black54,
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Control categories, pricing, and labels for home navigation tiles',
+                                  style: context.textTheme.bodyMedium?.copyWith(
+                                    color: context.isDarkMode ? Colors.white60 : Colors.black54,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 16),
                           ElevatedButton.icon(
                             onPressed: _isSaving ? null : _saveSettings,
                             icon: _isSaving

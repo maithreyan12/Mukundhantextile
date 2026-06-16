@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -72,34 +73,20 @@ class ProfileScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          // Coins Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFC200).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: const Color(0xFFFFC200).withValues(alpha: 0.4),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.monetization_on, size: 16, color: Color(0xFFFFC200)),
-                                SizedBox(width: 4),
-                                Text(
-                                  '150',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
+                          // Brand Logo
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'ios/logo.jpeg',
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ],
                       ),
                     ),
+
 
                     const SizedBox(height: 12),
 
@@ -144,60 +131,6 @@ class ProfileScreen extends StatelessWidget {
                             icon: Icons.headset_mic_outlined,
                             label: 'Help Center',
                             onTap: () => _showStoreInfoSheet(context),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── 3. Email Verification Banner Box ─────────────────────
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.mail_outline_rounded, size: 28, color: Colors.blue),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Add/Verify your Email',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Get latest updates of your orders',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => _showEditProfileDialog(context, profile.name, profile.email, profile.phone ?? ''),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                            ),
-                            child: const Text('Update', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -274,6 +207,30 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
+                    // ── Security Box ─────────────────────────────────────────
+                    _sectionHeader('Security'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _settingsTile(
+                            context,
+                            icon: Icons.lock_outline,
+                            title: 'Change Password',
+                            onTap: () => _showChangePasswordDialog(context),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
                     // ── 6. My Activity Box ───────────────────────────────────
                     _sectionHeader('My Activity'),
                     Container(
@@ -303,60 +260,6 @@ class ProfileScreen extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 12),
-
-                    // ── 7. Earn with Mugundhan Tex Box ────────────────────────
-                    _sectionHeader('Earn with Mugundhan Tex'),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _settingsTile(
-                            context,
-                            icon: Icons.storefront_outlined,
-                            title: 'Sell on Mugundhan Tex',
-                            onTap: () => context.showSnackBar('Seller registration opening soon!'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // ── 8. Feedback & Information Box ─────────────────────────
-                    _sectionHeader('Feedback & Information'),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _settingsTile(
-                            context,
-                            icon: Icons.description_outlined,
-                            title: 'Terms, Policies and Licenses',
-                            onTap: () => _showAboutSheet(context),
-                          ),
-                          _settingsTile(
-                            context,
-                            icon: Icons.help_outline,
-                            title: 'Browse FAQs',
-                            onTap: () => context.showSnackBar('FAQ section opening soon!'),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
 
                     // ── 9. Log Out Button Box ────────────────────────────────
                     Container(
@@ -465,57 +368,113 @@ class ProfileScreen extends StatelessWidget {
   // ── Dialogs & Sheets ────────────────────────────────────────
 
   void _showEditProfileDialog(BuildContext context, String currentName, String currentEmail, String currentPhone) {
-    final nameController = TextEditingController(text: currentName);
-    final emailController = TextEditingController(text: currentEmail);
-    final phoneController = TextEditingController(text: currentPhone);
-    
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Edit Profile'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomTextField(
-                controller: nameController,
-                label: 'Name',
-                hint: 'Enter your name',
+      barrierDismissible: false,
+      builder: (ctx) => _EditProfileDialog(
+        currentName: currentName,
+        currentEmail: currentEmail,
+        currentPhone: currentPhone,
+        onSave: (data) {
+          context.read<AuthCubit>().updateProfile(data);
+        },
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool obscureNew = true;
+    bool obscureConfirm = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.lock_reset_outlined, color: Colors.blue),
+                SizedBox(width: 8),
+                Text('Change Password'),
+              ],
+            ),
+            content: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomTextField(
+                    controller: newPasswordController,
+                    label: 'New Password',
+                    hint: 'Enter new password',
+                    obscureText: obscureNew,
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => obscureNew = !obscureNew),
+                    ),
+                    validator: (val) {
+                      if (val == null || val.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  CustomTextField(
+                    controller: confirmPasswordController,
+                    label: 'Confirm Password',
+                    hint: 'Re-enter new password',
+                    obscureText: obscureConfirm,
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon: IconButton(
+                      icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                    ),
+                    validator: (val) {
+                      if (val != newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                controller: emailController,
-                label: 'Email',
-                hint: 'Enter your email',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
               ),
-              const SizedBox(height: 12),
-              CustomTextField(
-                controller: phoneController,
-                label: 'Phone number',
-                hint: 'Enter your phone number',
+              ElevatedButton(
+                onPressed: () async {
+                  if (formKey.currentState?.validate() ?? false) {
+                    await context.read<AuthCubit>().updatePassword(
+                      newPasswordController.text.trim(),
+                    );
+                    if (ctx.mounted) {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Password changed successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                ),
+                child: const Text('Change Password'),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          PremiumButton(
-            isFullWidth: false,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            onPressed: () {
-              context.read<AuthCubit>().updateProfile({
-                'name': nameController.text.trim(),
-                'email': emailController.text.trim(),
-                'phone': phoneController.text.trim(),
-              });
-              Navigator.pop(ctx);
-            },
-            child: const Text('SAVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -783,6 +742,252 @@ class ProfileScreen extends StatelessWidget {
         Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 10),
         Expanded(child: Text(text, style: context.textTheme.bodySmall)),
+      ],
+    );
+  }
+}
+
+class _EditProfileDialog extends StatefulWidget {
+  final String currentName;
+  final String currentEmail;
+  final String currentPhone;
+  final Function(Map<String, String>) onSave;
+
+  const _EditProfileDialog({
+    required this.currentName,
+    required this.currentEmail,
+    required this.currentPhone,
+    required this.onSave,
+  });
+
+  @override
+  State<_EditProfileDialog> createState() => _EditProfileDialogState();
+}
+
+class _EditProfileDialogState extends State<_EditProfileDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  final _otpController = TextEditingController();
+
+  bool _isOtpSent = false;
+  String _otpTargetType = ''; // 'Email' or 'Phone'
+  String _otpTargetValue = '';
+  int _secondsRemaining = 59;
+  Timer? _timer;
+  final String _sentOtpCode = '1234'; // Mock OTP code for verification
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.currentName);
+    _emailController = TextEditingController(text: widget.currentEmail);
+    _phoneController = TextEditingController(text: widget.currentPhone);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _otpController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _secondsRemaining = 59;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  void _sendOtp(String type, String value) {
+    if (value.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid $type')),
+      );
+      return;
+    }
+    setState(() {
+      _isOtpSent = true;
+      _otpTargetType = type;
+      _otpTargetValue = value;
+      _otpController.clear();
+    });
+    _startTimer();
+    
+    // Simulate sending OTP
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Verification OTP code sent to $value! (Mock code is $_sentOtpCode)'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  void _confirmOtp() {
+    if (_otpController.text.trim() == _sentOtpCode) {
+      // Verification successful! Save changes.
+      widget.onSave({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+      });
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated and verified successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid OTP. Please try again! (Hint: use 1234)'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isOtpSent) {
+      return AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.shield_outlined, color: Colors.blue),
+            const SizedBox(width: 8),
+            Text('Verify $_otpTargetType'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A 4-digit verification code has been sent to:',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _otpTargetValue,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 8),
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: '0000',
+                hintStyle: TextStyle(color: Colors.grey.shade400, letterSpacing: 8),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _secondsRemaining > 0 ? 'Resend in ${_secondsRemaining}s' : 'Did not receive code?',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                if (_secondsRemaining == 0)
+                  TextButton(
+                    onPressed: () => _sendOtp(_otpTargetType, _otpTargetValue),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                    child: const Text('Resend OTP', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _isOtpSent = false;
+              });
+            },
+            child: const Text('Back'),
+          ),
+          ElevatedButton(
+            onPressed: _confirmOtp,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+            child: const Text('Verify & Confirm'),
+          ),
+        ],
+      );
+    }
+
+    return AlertDialog(
+      title: const Text('Edit Account Info'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomTextField(
+              controller: _nameController,
+              label: 'Name',
+              hint: 'Enter your name',
+            ),
+            const SizedBox(height: 12),
+            CustomTextField(
+              controller: _emailController,
+              label: 'Email',
+              hint: 'Enter your email',
+            ),
+            const SizedBox(height: 12),
+            CustomTextField(
+              controller: _phoneController,
+              label: 'Phone number',
+              hint: 'Enter your phone number',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final newEmail = _emailController.text.trim();
+            final newPhone = _phoneController.text.trim();
+            
+            // Prefer verification for modified email, else phone, else default to email
+            if (newEmail != widget.currentEmail) {
+              _sendOtp('Email', newEmail);
+            } else if (newPhone != widget.currentPhone) {
+              _sendOtp('Phone', newPhone);
+            } else {
+              _sendOtp('Email', newEmail);
+            }
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
+          child: const Text('Save & Verify'),
+        ),
       ],
     );
   }
