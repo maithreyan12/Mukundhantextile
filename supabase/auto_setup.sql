@@ -116,7 +116,23 @@ CREATE TABLE IF NOT EXISTS public.cart_items (
   UNIQUE (user_id, product_id, variant)
 );
 
+CREATE TABLE IF NOT EXISTS public.browse_settings (
+  id TEXT PRIMARY KEY,
+  live_now_label TEXT NOT NULL DEFAULT 'Live now',
+  live_now_sort TEXT NOT NULL DEFAULT 'popular',
+  live_now_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  deals_label TEXT NOT NULL DEFAULT 'Deals at 99',
+  deals_price NUMERIC(10,2) NOT NULL DEFAULT 99.0,
+  deals_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  sale_coming_label TEXT NOT NULL DEFAULT 'Sale coming!',
+  sale_coming_sort TEXT NOT NULL DEFAULT 'new',
+  sale_coming_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- ========================
+
 -- 5. INDEXES
 -- ========================
 CREATE INDEX IF NOT EXISTS idx_categories_active ON public.categories(is_active, sort_order);
@@ -190,8 +206,10 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.banners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.wishlist ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.browse_settings ENABLE ROW LEVEL SECURITY;
 
 -- Profiles
+
 DROP POLICY IF EXISTS profiles_insert_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_select_own ON public.profiles;
 DROP POLICY IF EXISTS profiles_update_own ON public.profiles;
@@ -353,10 +371,42 @@ CREATE POLICY cart_delete_own
   FOR DELETE
   USING (auth.uid() = user_id);
 
+-- Browse Settings
+DROP POLICY IF EXISTS browse_settings_public_select ON public.browse_settings;
+DROP POLICY IF EXISTS browse_settings_admin_insert ON public.browse_settings;
+DROP POLICY IF EXISTS browse_settings_admin_update ON public.browse_settings;
+DROP POLICY IF EXISTS browse_settings_admin_delete ON public.browse_settings;
+
+CREATE POLICY browse_settings_public_select
+  ON public.browse_settings
+  FOR SELECT
+  USING (true);
+
+CREATE POLICY browse_settings_admin_insert
+  ON public.browse_settings
+  FOR INSERT
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY browse_settings_admin_update
+  ON public.browse_settings
+  FOR UPDATE
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY browse_settings_admin_delete
+  ON public.browse_settings
+  FOR DELETE
+  USING (public.is_admin());
+
 -- ========================
 -- 8. DEMO DATA
 -- ========================
+INSERT INTO public.browse_settings (id, live_now_label, live_now_sort, live_now_enabled, deals_label, deals_price, deals_enabled, sale_coming_label, sale_coming_sort, sale_coming_enabled)
+VALUES ('popular_store_settings', 'Live now', 'popular', true, 'Deals at 99', 99.0, true, 'Sale coming!', 'new', true)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.categories (id, name, image_url, sort_order, is_active)
+
 VALUES
   ('11111111-1111-1111-1111-111111111111', 'Electronics', 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80', 1, true),
   ('22222222-2222-2222-2222-222222222222', 'Fashion', 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80', 2, true),

@@ -22,7 +22,9 @@ class _AdminShellState extends State<AdminShell> {
     _NavItem(icon: Icons.local_offer_rounded, label: 'Coupons', route: '/admin/coupons'),
     _NavItem(icon: Icons.image_rounded, label: 'Banners', route: '/admin/banners'),
     _NavItem(icon: Icons.palette_rounded, label: 'Theme', route: '/admin/theme'),
+    _NavItem(icon: Icons.tune_rounded, label: 'Browse Settings', route: '/admin/browse-settings'),
   ];
+
 
   void _onNavTap(int index) {
     setState(() => _selectedIndex = index);

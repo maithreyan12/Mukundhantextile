@@ -14,6 +14,7 @@ class ProductListState extends Equatable {
   final String? categoryId;
   final String? searchQuery;
   final String sortBy;
+  final double? maxPrice;
 
   const ProductListState({
     this.isLoading = false,
@@ -25,6 +26,7 @@ class ProductListState extends Equatable {
     this.categoryId,
     this.searchQuery,
     this.sortBy = 'created_at',
+    this.maxPrice,
   });
 
   ProductListState copyWith({
@@ -37,6 +39,7 @@ class ProductListState extends Equatable {
     String? categoryId,
     String? searchQuery,
     String? sortBy,
+    double? maxPrice,
   }) {
     return ProductListState(
       isLoading: isLoading ?? this.isLoading,
@@ -48,12 +51,13 @@ class ProductListState extends Equatable {
       categoryId: categoryId ?? this.categoryId,
       searchQuery: searchQuery ?? this.searchQuery,
       sortBy: sortBy ?? this.sortBy,
+      maxPrice: maxPrice ?? this.maxPrice,
     );
   }
 
   @override
   List<Object?> get props =>
-      [isLoading, isLoadingMore, error, products, page, hasReachedEnd, categoryId, searchQuery, sortBy];
+      [isLoading, isLoadingMore, error, products, page, hasReachedEnd, categoryId, searchQuery, sortBy, maxPrice];
 }
 
 // ── Cubit ───────────────────────────────────────────────
@@ -68,23 +72,26 @@ class ProductListCubit extends Cubit<ProductListState> {
     String? categoryId,
     String? searchQuery,
     String? sortBy,
+    double? maxPrice,
   }) async {
-    emit(state.copyWith(
+    emit(ProductListState(
       isLoading: true,
       error: null,
       page: 0,
       hasReachedEnd: false,
-      categoryId: categoryId ?? state.categoryId,
-      searchQuery: searchQuery ?? state.searchQuery,
-      sortBy: sortBy ?? state.sortBy,
+      categoryId: categoryId,
+      searchQuery: searchQuery,
+      sortBy: sortBy ?? 'created_at',
+      maxPrice: maxPrice,
     ));
 
     try {
       final products = await _repo.getProducts(
         page: 0,
-        categoryId: categoryId ?? state.categoryId,
-        searchQuery: searchQuery ?? state.searchQuery,
-        sortBy: sortBy ?? state.sortBy,
+        categoryId: categoryId,
+        searchQuery: searchQuery,
+        sortBy: sortBy ?? 'created_at',
+        maxPrice: maxPrice,
       );
       emit(state.copyWith(
         isLoading: false,
@@ -108,6 +115,7 @@ class ProductListCubit extends Cubit<ProductListState> {
         categoryId: state.categoryId,
         searchQuery: state.searchQuery,
         sortBy: state.sortBy,
+        maxPrice: state.maxPrice,
       );
       emit(state.copyWith(
         isLoadingMore: false,
@@ -120,3 +128,4 @@ class ProductListCubit extends Cubit<ProductListState> {
     }
   }
 }
+

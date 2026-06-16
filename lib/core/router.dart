@@ -30,6 +30,8 @@ import '../features/admin/users/admin_users_screen.dart';
 import '../features/admin/coupons/admin_coupons_screen.dart';
 import '../features/admin/banners/admin_banners_screen.dart';
 import '../features/admin/theme/theme_settings_screen.dart';
+import '../features/admin/browse_settings/admin_browse_settings_screen.dart';
+
 
 class AppRouter {
   final AuthCubit authCubit;
@@ -80,6 +82,9 @@ class AppRouter {
         builder: (_, state) => ProductListScreen(
           categoryId: state.uri.queryParameters['category'],
           sort: state.uri.queryParameters['sort'],
+          maxPrice: state.uri.queryParameters['maxPrice'] != null
+              ? double.tryParse(state.uri.queryParameters['maxPrice']!)
+              : null,
         ),
       ),
       GoRoute(
@@ -220,6 +225,10 @@ class AppRouter {
           GoRoute(
             path: '/admin/theme',
             builder: (_, _) => const ThemeSettingsScreen(),
+          ),
+          GoRoute(
+            path: '/admin/browse-settings',
+            builder: (_, _) => const AdminBrowseSettingsScreen(),
           ),
         ],
       ),

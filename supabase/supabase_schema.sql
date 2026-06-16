@@ -183,7 +183,24 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Browse Settings
+CREATE TABLE IF NOT EXISTS browse_settings (
+  id TEXT PRIMARY KEY,
+  live_now_label TEXT NOT NULL DEFAULT 'Live now',
+  live_now_sort TEXT NOT NULL DEFAULT 'popular',
+  live_now_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  deals_label TEXT NOT NULL DEFAULT 'Deals at 99',
+  deals_price NUMERIC(10,2) NOT NULL DEFAULT 99.0,
+  deals_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  sale_coming_label TEXT NOT NULL DEFAULT 'Sale coming!',
+  sale_coming_sort TEXT NOT NULL DEFAULT 'new',
+  sale_coming_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- ========================
+
 -- 4. INDEXES
 -- ========================
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
@@ -307,11 +324,12 @@ ALTER TABLE addresses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE coupons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE banners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE browse_settings ENABLE ROW LEVEL SECURITY;
 
 -- Drop all existing policies first to avoid conflicts on re-run
+
 DO $$ 
 DECLARE
   r RECORD;
@@ -457,7 +475,18 @@ CREATE POLICY "notifications_update_own"
 CREATE POLICY "notifications_admin_insert"
   ON notifications FOR INSERT WITH CHECK (is_admin());
 
+-- ---- Browse Settings ----
+CREATE POLICY "browse_settings_public_read"
+  ON browse_settings FOR SELECT USING (true);
+CREATE POLICY "browse_settings_admin_insert"
+  ON browse_settings FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "browse_settings_admin_update"
+  ON browse_settings FOR UPDATE USING (is_admin());
+CREATE POLICY "browse_settings_admin_delete"
+  ON browse_settings FOR DELETE USING (is_admin());
+
 -- ========================
+
 -- 7. STORAGE BUCKETS
 -- ========================
 INSERT INTO storage.buckets (id, name, public)

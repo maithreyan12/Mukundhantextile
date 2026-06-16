@@ -12,12 +12,15 @@ import '../../wishlist/bloc/wishlist_cubit.dart';
 import '../../cart/bloc/cart_cubit.dart';
 import '../bloc/product_list_cubit.dart';
 import '../../home/bloc/home_cubit.dart';
+import '../../../data/models/browse_settings.dart';
+import '../../../data/repositories/browse_settings_repository.dart';
 
 class ProductListScreen extends StatefulWidget {
   final String? categoryId;
   final String? sort;
+  final double? maxPrice;
 
-  const ProductListScreen({super.key, this.categoryId, this.sort});
+  const ProductListScreen({super.key, this.categoryId, this.sort, this.maxPrice});
 
   @override
   State<ProductListScreen> createState() => _ProductListScreenState();
@@ -26,11 +29,16 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
   final ScrollController _scrollController = ScrollController();
   int _selectedCategoryIndex = 0;
+  BrowseSettings? _browseSettings;
+
+
+  bool get _shouldShowGrid =>
+      widget.categoryId != null || widget.sort != null || widget.maxPrice != null;
 
   @override
   void initState() {
     super.initState();
-    if (widget.categoryId != null) {
+    if (_shouldShowGrid) {
       context.read<ProductListCubit>().loadProducts(
             categoryId: widget.categoryId,
             sortBy: widget.sort == 'new'
@@ -38,13 +46,31 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 : widget.sort == 'popular'
                     ? 'review_count'
                     : 'created_at',
+            maxPrice: widget.maxPrice,
           );
       _scrollController.addListener(_onScroll);
     } else {
       // Browse tab: load categories/home data
       context.read<HomeCubit>().loadHome();
+      _loadBrowseSettings();
     }
   }
+
+  Future<void> _loadBrowseSettings() async {
+    if (!mounted) return;
+    try {
+      final settings = await BrowseSettingsRepository().getSettings();
+      if (mounted) {
+        setState(() {
+          _browseSettings = settings;
+        });
+      }
+    } catch (_) {
+      // ignore
+    }
+  }
+
+
 
   void _onScroll() {
     if (_scrollController.position.pixels >=
@@ -64,7 +90,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     final isDesktop = Responsive.isLargeScreen(context);
 
     // If a categoryId is provided, show standard Product Grid
-    if (widget.categoryId != null) {
+    if (_shouldShowGrid) {
       return Scaffold(
         appBar: isDesktop
             ? null
@@ -88,9 +114,16 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 message: state.error!,
                 onRetry: () => context.read<ProductListCubit>().loadProducts(
                       categoryId: widget.categoryId,
+                      sortBy: widget.sort == 'new'
+                          ? 'created_at'
+                          : widget.sort == 'popular'
+                              ? 'review_count'
+                              : 'created_at',
+                      maxPrice: widget.maxPrice,
                     ),
               );
             }
+
             if (state.products.isEmpty) {
               return const EmptyStateWidget(
                 icon: Icons.inventory_2_outlined,
@@ -392,48 +425,73 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 12,
-                          crossAxisSpacing: 8,
-                          childAspectRatio: 0.82,
-                          children: [
-                            _buildPopularStoreItem(
-                              context,
-                              icon: Icons.flash_on_rounded,
-                              bgColor: Colors.amber.shade100,
-                              iconColor: Colors.amber.shade800,
-                              label: 'Live now',
-                              onTap: () => context.push('/category/${selectedCategory.id}'),
-                            ),
-                            _buildPopularStoreItem(
-                              context,
-                              icon: Icons.percent_rounded,
-                              bgColor: Colors.red.shade100,
-                              iconColor: Colors.red.shade800,
-                              label: 'Deals at 99',
-                              onTap: () => context.push('/category/${selectedCategory.id}'),
-                            ),
-                            _buildPopularStoreItem(
-                              context,
-                              icon: Icons.calendar_month_rounded,
-                              bgColor: Colors.purple.shade100,
-                              iconColor: Colors.purple.shade800,
-                              label: 'Sale coming!',
-                              onTap: () => context.push('/category/${selectedCategory.id}'),
-                            ),
-                            _buildPopularStoreItem(
-                              context,
-                              icon: Icons.local_mall_rounded,
-                              bgColor: Colors.green.shade100,
-                              iconColor: Colors.green.shade800,
-                              label: selectedCategory.name,
-                              onTap: () => context.push('/category/${selectedCategory.id}'),
-                            ),
-                          ],
+                        Builder(
+                          builder: (context) {
+                            final settings = _browseSettings ?? const BrowseSettings(id: 'popular_store_settings');
+                            final items = <Widget>[];
+
+                            if (settings.liveNowEnabled) {
+                              items.add(
+                                _buildPopularStoreItem(
+                                  context,
+                                  icon: Icons.flash_on_rounded,
+                                  bgColor: Colors.amber.shade100,
+                                  iconColor: Colors.amber.shade800,
+                                  label: settings.liveNowLabel,
+                                  onTap: () => context.push('/products?sort=${settings.liveNowSort}'),
+                                ),
+                              );
+                            }
+
+                            if (settings.dealsEnabled) {
+                              items.add(
+                                _buildPopularStoreItem(
+                                  context,
+                                  icon: Icons.percent_rounded,
+                                  bgColor: Colors.red.shade100,
+                                  iconColor: Colors.red.shade800,
+                                  label: settings.dealsLabel,
+                                  onTap: () => context.push('/products?maxPrice=${settings.dealsPrice.toStringAsFixed(0)}'),
+                                ),
+                              );
+                            }
+
+                            if (settings.saleComingEnabled) {
+                              items.add(
+                                _buildPopularStoreItem(
+                                  context,
+                                  icon: Icons.calendar_month_rounded,
+                                  bgColor: Colors.purple.shade100,
+                                  iconColor: Colors.purple.shade800,
+                                  label: settings.saleComingLabel,
+                                  onTap: () => context.push('/products?sort=${settings.saleComingSort}'),
+                                ),
+                              );
+                            }
+
+                            items.add(
+                              _buildPopularStoreItem(
+                                context,
+                                icon: Icons.local_mall_rounded,
+                                bgColor: Colors.green.shade100,
+                                iconColor: Colors.green.shade800,
+                                label: selectedCategory.name,
+                                onTap: () => context.push('/products?category=${selectedCategory.id}'),
+                              ),
+                            );
+
+                            return GridView.count(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              crossAxisCount: 3,
+                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 8,
+                              childAspectRatio: 0.82,
+                              children: items,
+                            );
+                          },
                         ),
+
 
                         const SizedBox(height: 24),
 
