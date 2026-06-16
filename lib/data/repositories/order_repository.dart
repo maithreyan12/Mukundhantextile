@@ -107,7 +107,16 @@ class OrderRepository {
 
   // ── Admin: Update Order Status ────────────────────────
   Future<void> updateOrderStatus(String orderId, String status) async {
-    await _client.from('orders').update({'status': status}).eq('id', orderId);
+    final Map<String, dynamic> updates = {'status': status};
+    final nowString = DateTime.now().toUtc().toIso8601String();
+    if (status == 'confirmed') {
+      updates['confirmed_at'] = nowString;
+    } else if (status == 'shipped') {
+      updates['shipped_at'] = nowString;
+    } else if (status == 'delivered') {
+      updates['delivered_at'] = nowString;
+    }
+    await _client.from('orders').update(updates).eq('id', orderId);
   }
 
   // ── Realtime Order Subscription ───────────────────────

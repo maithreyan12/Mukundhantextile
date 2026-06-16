@@ -54,6 +54,16 @@ class AppRouter {
 
       if (!isAuth && !isAuthRoute) return '/login';
       if (isAuth && isAuthRoute) return '/';
+
+      // Strict Admin Access Control: Allow only mukundhantextile@gmail.com
+      if (state.matchedLocation.startsWith('/admin')) {
+        if (!isAuth) return '/login';
+        final email = authState.profile.email;
+        if (email != 'mukundhantextile@gmail.com') {
+          return '/'; // Non-admin redirected to home
+        }
+      }
+
       return null;
     },
     routes: [

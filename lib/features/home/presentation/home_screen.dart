@@ -140,18 +140,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── App Bar (mobile only — desktop has top nav from shell) ──
                 if (!isDesktop)
                   SliverAppBar(
-                    title: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppConstants.appName.toUpperCase(),
-                        style: context.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.5,
-                          fontSize: 18,
-                          color: context.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+                    title: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.asset(
+                            'ios/logo.jpeg',
+                            width: 30,
+                            height: 30,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'MUGUNDHAN TEX & READYMADES',
+                              style: context.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.5,
+                                fontSize: 16,
+                                color: context.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     actions: [
                       IconButton(

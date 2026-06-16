@@ -745,7 +745,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   if (isActive) ...[
                     const SizedBox(height: 2),
                     Text(
-                      _order!.createdAt.toLocal().add(Duration(days: idx)).formattedWithTime,
+                      idx == 0
+                          ? _order!.createdAt.toLocal().formattedWithTime
+                          : idx == 1
+                              ? (_order!.confirmedAt ?? _order!.createdAt).toLocal().formattedWithTime
+                              : idx == 2
+                                  ? (_order!.shippedAt ?? (_order!.confirmedAt ?? _order!.createdAt)).toLocal().formattedWithTime
+                                  : (_order!.deliveredAt ?? (_order!.shippedAt ?? (_order!.confirmedAt ?? _order!.createdAt))).toLocal().formattedWithTime,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey.shade500,

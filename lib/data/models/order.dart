@@ -49,6 +49,9 @@ class Order extends Equatable {
   final List<OrderItem> items;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? confirmedAt;
+  final DateTime? shippedAt;
+  final DateTime? deliveredAt;
 
   const Order({
     required this.id,
@@ -62,6 +65,9 @@ class Order extends Equatable {
     this.items = const [],
     required this.createdAt,
     required this.updatedAt,
+    this.confirmedAt,
+    this.shippedAt,
+    this.deliveredAt,
   });
 
   double get finalAmount => totalAmount - discountAmount;
@@ -85,6 +91,15 @@ class Order extends Equatable {
           json['created_at'] as String? ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(
           json['updated_at'] as String? ?? DateTime.now().toIso8601String()),
+      confirmedAt: json['confirmed_at'] != null
+          ? DateTime.parse(json['confirmed_at'] as String)
+          : null,
+      shippedAt: json['shipped_at'] != null
+          ? DateTime.parse(json['shipped_at'] as String)
+          : null,
+      deliveredAt: json['delivered_at'] != null
+          ? DateTime.parse(json['delivered_at'] as String)
+          : null,
     );
   }
 
@@ -96,9 +111,17 @@ class Order extends Equatable {
         'status': status.name,
         'payment_method': paymentMethod,
         'shipping_address': shippingAddress,
+        'confirmed_at': confirmedAt?.toIso8601String(),
+        'shipped_at': shippedAt?.toIso8601String(),
+        'delivered_at': deliveredAt?.toIso8601String(),
       };
 
-  Order copyWith({OrderStatus? status}) {
+  Order copyWith({
+    OrderStatus? status,
+    DateTime? confirmedAt,
+    DateTime? shippedAt,
+    DateTime? deliveredAt,
+  }) {
     return Order(
       id: id,
       userId: userId,
@@ -111,9 +134,21 @@ class Order extends Equatable {
       items: items,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      confirmedAt: confirmedAt ?? this.confirmedAt,
+      shippedAt: shippedAt ?? this.shippedAt,
+      deliveredAt: deliveredAt ?? this.deliveredAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, userId, totalAmount, status, createdAt];
+  List<Object?> get props => [
+        id,
+        userId,
+        totalAmount,
+        status,
+        createdAt,
+        confirmedAt,
+        shippedAt,
+        deliveredAt
+      ];
 }
