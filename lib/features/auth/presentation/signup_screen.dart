@@ -94,21 +94,7 @@ class _SignupScreenState extends State<SignupScreen>
         },
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: context.isDarkMode
-                  ? [
-                      Theme.of(context).colorScheme.surface,
-                      Colors.transparent,
-                      Theme.of(context).colorScheme.tertiary,
-                    ]
-                  : [
-                      const Color(0xFFF8F9FD),
-                      const Color(0xFFEEF0FB),
-                      const Color(0xFFE8EAFC),
-                    ],
-            ),
+            color: context.isDarkMode ? const Color(0xFF0F0F1A) : const Color(0xFFF5F7FA),
           ),
           child: SafeArea(
             child: Center(

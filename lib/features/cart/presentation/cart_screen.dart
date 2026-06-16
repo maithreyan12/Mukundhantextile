@@ -130,13 +130,24 @@ class _CartScreenState extends State<CartScreen> {
               // ── Left: Cart Items ──
               Expanded(
                 flex: 6,
-                child: ListView.separated(
-                  itemCount: state.items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = state.items[index];
-                    return _buildCartItem(context, item);
-                  },
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: state.items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = state.items[index];
+                          return _buildCartItem(context, item);
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _buildItemsMissedSection(context),
+                    ],
+                  ),
                 ),
               ),
 

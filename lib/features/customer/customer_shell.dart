@@ -31,7 +31,7 @@ class _CustomerShellState extends State<CustomerShell> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Responsive.isLargeScreen(context);
+    final isDesktop = Responsive.isDesktop(context);
 
     return PopScope(
       canPop: _currentIndex == 0,

@@ -9,6 +9,7 @@ import '../features/auth/presentation/signup_screen.dart';
 import '../features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/profile_screen.dart';
 import '../features/auth/presentation/address_form_screen.dart';
+import '../features/auth/presentation/user_reviews_screen.dart';
 import '../features/customer/customer_shell.dart';
 import '../features/product/presentation/product_list_screen.dart';
 import '../features/product/presentation/product_detail_screen.dart';
@@ -168,6 +169,10 @@ class AppRouter {
       GoRoute(
         path: '/profile',
         builder: (_, _) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/reviews',
+        builder: (_, _) => const UserReviewsScreen(),
       ),
       GoRoute(
         path: '/address-form',

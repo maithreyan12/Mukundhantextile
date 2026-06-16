@@ -55,4 +55,14 @@ class ReviewRepository {
   Future<void> deleteReview(String id) async {
     await _client.from('reviews').delete().eq('id', id);
   }
+
+  // ── Get User Reviews (All reviews by this user) ───────
+  Future<List<Review>> getUserReviews() async {
+    final data = await _client
+        .from('reviews')
+        .select('*, products(name, image_url)')
+        .eq('user_id', _userId)
+        .order('created_at', ascending: false);
+    return (data as List).map((e) => Review.fromJson(e)).toList();
+  }
 }

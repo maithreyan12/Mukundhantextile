@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 12 Brand Color Themes for Mugundhan Textiles
 class AppColorTheme {
@@ -279,7 +280,11 @@ class ThemeState {
 }
 
 class ThemeCubit extends Cubit<ThemeState> {
-  ThemeCubit() : super(const ThemeState()) {
+  ThemeCubit({ThemeMode? initialMode, int? initialColorIndex}) 
+      : super(ThemeState(
+          themeMode: initialMode ?? ThemeMode.dark,
+          colorIndex: initialColorIndex ?? 0,
+        )) {
     _loadThemeFromSupabase();
   }
 
@@ -300,17 +305,27 @@ class ThemeCubit extends Cubit<ThemeState> {
         final colorIndex = value['color_index'] as int? ?? 0;
         final mode = ThemeMode.values[modeIndex.clamp(0, 2)];
         final safeColorIndex = colorIndex.clamp(0, AppColorThemes.all.length - 1);
+        
         emit(ThemeState(themeMode: mode, colorIndex: safeColorIndex));
+        
+        // Cache locally
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('theme_mode_index', modeIndex);
+        await prefs.setInt('color_theme_index', safeColorIndex);
       }
     } catch (e) {
-      // If table doesn't exist or error, use defaults
       debugPrint('⚠️ Theme load error (using defaults): $e');
     }
   }
 
-  /// Save theme to Supabase (admin only)
+  /// Save theme to Supabase (admin only) and cache locally
   Future<void> _saveToSupabase() async {
     try {
+      // Cache locally first so it's instant next start
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('theme_mode_index', state.themeMode.index);
+      await prefs.setInt('color_theme_index', state.colorIndex);
+
       await _client.from('app_settings').upsert({
         'key': 'app_theme',
         'value': {

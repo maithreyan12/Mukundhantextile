@@ -258,7 +258,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
             children: [
               // ── 1. Left Vertical Navigation Sidebar ──────────────────
               Container(
-                width: 95,
+                width: isDesktop ? 220 : 95,
                 color: context.isDarkMode ? const Color(0xFF141420) : const Color(0xFFF1F2F4),
                 child: ListView.builder(
                   itemCount: categories.length,
@@ -274,7 +274,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       },
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                        padding: isDesktop
+                            ? const EdgeInsets.symmetric(vertical: 14, horizontal: 16)
+                            : const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? (context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white)
@@ -288,51 +290,94 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                 )
                               : null,
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Circular Category Avatar
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                                    : (context.isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.white),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.transparent,
-                                  width: 1.5,
-                                ),
+                        child: isDesktop
+                            ? Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                                          : (context.isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.white),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.transparent,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: ClipOval(
+                                      child: CachedImage(
+                                        imageUrl: cat.imageUrl ?? '',
+                                        width: 36,
+                                        height: 36,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      cat.name,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.primary
+                                            : (context.isDarkMode ? Colors.white70 : Colors.black87),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Circular Category Avatar
+                                  Container(
+                                    width: 52,
+                                    height: 52,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isSelected
+                                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                                          : (context.isDarkMode ? Colors.white.withValues(alpha: 0.05) : Colors.white),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Colors.transparent,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(2),
+                                    child: ClipOval(
+                                      child: CachedImage(
+                                        imageUrl: cat.imageUrl ?? '',
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    cat.name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+                                      color: isSelected
+                                          ? Theme.of(context).colorScheme.primary
+                                          : (context.isDarkMode ? Colors.white70 : Colors.black87),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              padding: const EdgeInsets.all(2),
-                              child: ClipOval(
-                                child: CachedImage(
-                                  imageUrl: cat.imageUrl ?? '',
-                                  width: 48,
-                                  height: 48,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              cat.name,
-                              textAlign: TextAlign.center,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
-                                color: isSelected
-                                    ? Theme.of(context).colorScheme.primary
-                                    : (context.isDarkMode ? Colors.white70 : Colors.black87),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                     );
                   },
@@ -343,11 +388,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               Expanded(
                 child: Container(
                   color: context.isDarkMode ? const Color(0xFF0F0F1A) : Colors.white,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: isDesktop ? 1200 : double.infinity),
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(isDesktop ? 24 : 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         // Promo Banner at top
                         GestureDetector(
                           onTap: () {
@@ -524,11 +572,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: isDesktop ? 6 : 3,
                             mainAxisSpacing: 10,
                             crossAxisSpacing: 8,
-                            childAspectRatio: 0.62,
+                            childAspectRatio: isDesktop ? 0.72 : 0.62,
                           ),
                           itemCount: displayLaunches.length,
                           itemBuilder: (context, index) {
@@ -619,8 +667,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
               ),
-            ],
-          );
+            ),
+          ),
+        ],
+      );
         },
       ),
     );

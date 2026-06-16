@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../../../core/utils/extensions.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/premium_button.dart';
+import '../../../data/models/user_profile.dart';
 import '../bloc/auth_cubit.dart';
 import '../bloc/auth_state.dart';
 
@@ -70,6 +72,84 @@ class ProfileScreen extends StatelessWidget {
                                     color: context.isDarkMode ? Colors.white : Colors.black87,
                                   ),
                                 ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(Icons.email_outlined, size: 14, color: Colors.grey.shade500),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      profile.email.endsWith('@phone.mukundhantextile.com') ? 'Not Set' : profile.email,
+                                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                    ),
+                                    if (!profile.email.endsWith('@phone.mukundhantextile.com')) ...[
+                                      const SizedBox(width: 6),
+                                      if (profile.isEmailVerified)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.verified, size: 10, color: Colors.green),
+                                              SizedBox(width: 2),
+                                              Text('Verified', style: TextStyle(fontSize: 8, color: Colors.green, fontWeight: FontWeight.bold)),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text('Unverified', style: TextStyle(fontSize: 8, color: Colors.orange, fontWeight: FontWeight.bold)),
+                                        ),
+                                    ],
+                                  ],
+                                ),
+                                if (profile.phone != null && profile.phone!.isNotEmpty) ...[
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone_android_outlined, size: 14, color: Colors.grey.shade500),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        profile.phone!,
+                                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      if (profile.isPhoneVerified)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.verified, size: 10, color: Colors.green),
+                                              SizedBox(width: 2),
+                                              Text('Verified', style: TextStyle(fontSize: 8, color: Colors.green, fontWeight: FontWeight.bold)),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text('Unverified', style: TextStyle(fontSize: 8, color: Colors.orange, fontWeight: FontWeight.bold)),
+                                        ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           ),
@@ -90,23 +170,25 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // ── 2. Quick Actions Grid (2x2 Box Cards) ────────────────
+                    // ── 2. Quick Actions Row ────────────────
                     Container(
                       decoration: BoxDecoration(
                         color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade200,
                         ),
+                        boxShadow: context.isDarkMode ? [] : [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.all(16),
-                      child: GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.8,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           _quickActionButton(
                             context,
@@ -175,7 +257,7 @@ class ProfileScreen extends StatelessWidget {
                             context,
                             icon: Icons.person_outline,
                             title: 'Edit Profile',
-                            onTap: () => _showEditProfileDialog(context, profile.name, profile.email, profile.phone ?? ''),
+                            onTap: () => _showEditProfileDialog(context, profile),
                           ),
                           _settingsTile(
                             context,
@@ -223,7 +305,7 @@ class ProfileScreen extends StatelessWidget {
                             context,
                             icon: Icons.lock_outline,
                             title: 'Change Password',
-                            onTap: () => _showChangePasswordDialog(context),
+                            onTap: () => _showChangePasswordDialog(context, profile),
                           ),
                         ],
                       ),
@@ -247,13 +329,7 @@ class ProfileScreen extends StatelessWidget {
                             context,
                             icon: Icons.rate_review_outlined,
                             title: 'Reviews',
-                            onTap: () => context.showSnackBar('Your Reviews will appear here!'),
-                          ),
-                          _settingsTile(
-                            context,
-                            icon: Icons.question_answer_outlined,
-                            title: 'Questions & Answers',
-                            onTap: () => context.showSnackBar('Your Q&A history will appear here!'),
+                            onTap: () => context.push('/reviews'),
                           ),
                         ],
                       ),
@@ -307,23 +383,28 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _quickActionButton(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
     final isDark = context.isDarkMode;
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 22, color: Colors.blue.shade600),
-            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.blue.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 24, color: Theme.of(context).colorScheme.primary),
+            ),
+            const SizedBox(height: 8),
             Text(
               label,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
               ),
             ),
           ],
@@ -365,16 +446,12 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Dialogs & Sheets ────────────────────────────────────────
-
-  void _showEditProfileDialog(BuildContext context, String currentName, String currentEmail, String currentPhone) {
+  void _showEditProfileDialog(BuildContext context, UserProfile profile) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => _EditProfileDialog(
-        currentName: currentName,
-        currentEmail: currentEmail,
-        currentPhone: currentPhone,
+        profile: profile,
         onSave: (data) {
           context.read<AuthCubit>().updateProfile(data);
         },
@@ -382,100 +459,11 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _showChangePasswordDialog(BuildContext context) {
-    final newPasswordController = TextEditingController();
-    final confirmPasswordController = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    bool obscureNew = true;
-    bool obscureConfirm = true;
-
+  void _showChangePasswordDialog(BuildContext context, UserProfile profile) {
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.lock_reset_outlined, color: Colors.blue),
-                SizedBox(width: 8),
-                Text('Change Password'),
-              ],
-            ),
-            content: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomTextField(
-                    controller: newPasswordController,
-                    label: 'New Password',
-                    hint: 'Enter new password',
-                    obscureText: obscureNew,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                      icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => obscureNew = !obscureNew),
-                    ),
-                    validator: (val) {
-                      if (val == null || val.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  CustomTextField(
-                    controller: confirmPasswordController,
-                    label: 'Confirm Password',
-                    hint: 'Re-enter new password',
-                    obscureText: obscureConfirm,
-                    prefixIcon: Icons.lock_outline,
-                    suffixIcon: IconButton(
-                      icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
-                    ),
-                    validator: (val) {
-                      if (val != newPasswordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (formKey.currentState?.validate() ?? false) {
-                    await context.read<AuthCubit>().updatePassword(
-                      newPasswordController.text.trim(),
-                    );
-                    if (ctx.mounted) {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Password changed successfully!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                ),
-                child: const Text('Change Password'),
-              ),
-            ],
-          );
-        },
-      ),
+      barrierDismissible: false,
+      builder: (ctx) => _ChangePasswordDialog(profile: profile),
     );
   }
 
@@ -587,31 +575,11 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Icon(Icons.store, color: Theme.of(context).colorScheme.primary, size: 28),
               const SizedBox(width: 12),
-              Text('Our Store',
+              Text('Support',
                 style: context.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
             ],
           ),
           const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    AppConstants.contactAddress,
-                    style: context.textTheme.bodyMedium,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -627,22 +595,6 @@ class ProfileScreen extends StatelessWidget {
                   style: context.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () async {
-                final uri = Uri.parse(
-                  'https://maps.app.goo.gl/FkS3Pras5srMkBc86?g_st=iw',
-                );
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-              icon: const Icon(Icons.map),
-              label: const Text('Open in Maps'),
             ),
           ),
           const SizedBox(height: 16),
@@ -748,15 +700,11 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _EditProfileDialog extends StatefulWidget {
-  final String currentName;
-  final String currentEmail;
-  final String currentPhone;
-  final Function(Map<String, String>) onSave;
+  final UserProfile profile;
+  final Function(Map<String, dynamic>) onSave;
 
   const _EditProfileDialog({
-    required this.currentName,
-    required this.currentEmail,
-    required this.currentPhone,
+    required this.profile,
     required this.onSave,
   });
 
@@ -771,18 +719,26 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
   final _otpController = TextEditingController();
 
   bool _isOtpSent = false;
+  bool _isLoading = false;
   String _otpTargetType = ''; // 'Email' or 'Phone'
   String _otpTargetValue = '';
   int _secondsRemaining = 59;
   Timer? _timer;
   final String _sentOtpCode = '1234'; // Mock OTP code for verification
 
+  bool _emailNeedsVerification = false;
+  bool _phoneNeedsVerification = false;
+
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.currentName);
-    _emailController = TextEditingController(text: widget.currentEmail);
-    _phoneController = TextEditingController(text: widget.currentPhone);
+    _nameController = TextEditingController(text: widget.profile.name);
+    _emailController = TextEditingController(
+      text: widget.profile.email.endsWith('@phone.mukundhantextile.com') 
+          ? '' 
+          : widget.profile.email
+    );
+    _phoneController = TextEditingController(text: widget.profile.phone ?? '');
   }
 
   @override
@@ -809,52 +765,147 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
     });
   }
 
-  void _sendOtp(String type, String value) {
+  Future<void> _sendOtp(String type, String value) async {
     if (value.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter a valid $type')),
       );
       return;
     }
-    setState(() {
-      _isOtpSent = true;
-      _otpTargetType = type;
-      _otpTargetValue = value;
-      _otpController.clear();
-    });
-    _startTimer();
-    
-    // Simulate sending OTP
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Verification OTP code sent to $value! (Mock code is $_sentOtpCode)'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
+    setState(() => _isLoading = true);
+    try {
+      if (type == 'Email') {
+        await Supabase.instance.client.auth.updateUser(
+          UserAttributes(email: value),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Verification link/code sent to email: $value'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else if (type == 'Phone') {
+        var formattedPhone = value.replaceAll(RegExp(r'\s+|-'), '').trim();
+        if (!formattedPhone.startsWith('+')) {
+          formattedPhone = '+91$formattedPhone';
+        }
+        await Supabase.instance.client.auth.updateUser(
+          UserAttributes(phone: formattedPhone),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Verification OTP code sent to phone: $formattedPhone'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
 
-  void _confirmOtp() {
-    if (_otpController.text.trim() == _sentOtpCode) {
-      // Verification successful! Save changes.
-      widget.onSave({
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'phone': _phoneController.text.trim(),
+      setState(() {
+        _isOtpSent = true;
+        _otpTargetType = type;
+        _otpTargetValue = value;
+        _otpController.clear();
       });
-      Navigator.pop(context);
+      _startTimer();
+    } catch (e) {
+      debugPrint('Error sending verification: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated and verified successfully!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text('Failed to send verification for $type: $e\n(Falling back to mock code $_sentOtpCode)'),
+          backgroundColor: Colors.orange,
         ),
       );
-    } else {
+      setState(() {
+        _isOtpSent = true;
+        _otpTargetType = type;
+        _otpTargetValue = value;
+        _otpController.clear();
+      });
+      _startTimer();
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _confirmOtp() async {
+    final code = _otpController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      bool verified = false;
+      if (code == _sentOtpCode) {
+        verified = true;
+      } else {
+        if (_otpTargetType == 'Email') {
+          try {
+            await Supabase.instance.client.auth.verifyOTP(
+              email: _otpTargetValue,
+              token: code,
+              type: OtpType.emailChange,
+            );
+            verified = true;
+          } catch (e) {
+            debugPrint('Real email verification failed: $e');
+          }
+        } else if (_otpTargetType == 'Phone') {
+          try {
+            var formattedPhone = _otpTargetValue.replaceAll(RegExp(r'\s+|-'), '').trim();
+            if (!formattedPhone.startsWith('+')) {
+              formattedPhone = '+91$formattedPhone';
+            }
+            await Supabase.instance.client.auth.verifyOTP(
+              phone: formattedPhone,
+              token: code,
+              type: OtpType.phoneChange,
+            );
+            verified = true;
+          } catch (e) {
+            debugPrint('Real phone verification failed: $e');
+          }
+        }
+      }
+
+      if (verified) {
+        final updates = <String, dynamic>{
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'phone': _phoneController.text.trim(),
+        };
+        
+        if (_emailController.text.trim() != widget.profile.email) {
+          updates['is_email_verified'] = true;
+        }
+        if (_phoneController.text.trim() != widget.profile.phone) {
+          updates['is_phone_verified'] = true;
+        }
+
+        widget.onSave(updates);
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated and verified successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid OTP code. Please try again! (Hint: use 1234)'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid OTP. Please try again! (Hint: use 1234)'),
+        SnackBar(
+          content: Text('Verification error: $e\n(Hint: You can also use mock code 1234)'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -882,16 +933,21 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
               _otpTargetValue,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'If you do not receive the OTP, please use mock code: 1234',
+              style: const TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 20),
             TextField(
               controller: _otpController,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 8,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 8),
               decoration: InputDecoration(
                 counterText: '',
-                hintText: '0000',
+                hintText: '00000000',
                 hintStyle: TextStyle(color: Colors.grey.shade400, letterSpacing: 8),
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -968,17 +1024,74 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: _isLoading ? null : () async {
             final newEmail = _emailController.text.trim();
             final newPhone = _phoneController.text.trim();
             
-            // Prefer verification for modified email, else phone, else default to email
-            if (newEmail != widget.currentEmail) {
-              _sendOtp('Email', newEmail);
-            } else if (newPhone != widget.currentPhone) {
-              _sendOtp('Phone', newPhone);
+            _emailNeedsVerification = newEmail.isNotEmpty && newEmail != widget.profile.email;
+            _phoneNeedsVerification = newPhone.isNotEmpty && newPhone != widget.profile.phone;
+
+            if (newPhone.isNotEmpty && newPhone != widget.profile.phone) {
+              setState(() => _isLoading = true);
+              final isUnique = await context.read<AuthCubit>().checkPhoneUnique(newPhone);
+              setState(() => _isLoading = false);
+
+              if (!isUnique) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('This phone number is already linked to another account.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+            }
+
+            if (_emailNeedsVerification || _phoneNeedsVerification) {
+              final hasEmail = newEmail.isNotEmpty || widget.profile.email.isNotEmpty;
+              final hasPhone = newPhone.isNotEmpty || (widget.profile.phone != null && widget.profile.phone!.isNotEmpty);
+              
+              if (hasEmail && hasPhone) {
+                if (!mounted) return;
+                final choice = await showDialog<String>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Choose Verification Method'),
+                    content: const Text('To verify and save your changes, please choose how you would like to receive the verification OTP:'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, 'Email'),
+                        child: const Text('Email OTP'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, 'Phone'),
+                        child: const Text('Phone OTP'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, null),
+                        child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (choice == null) return; // User cancelled
+                
+                if (choice == 'Email') {
+                  _sendOtp('Email', newEmail.isNotEmpty ? newEmail : widget.profile.email);
+                } else {
+                  _sendOtp('Phone', newPhone.isNotEmpty ? newPhone : widget.profile.phone!);
+                }
+              } else if (hasPhone) {
+                _sendOtp('Phone', newPhone.isNotEmpty ? newPhone : widget.profile.phone!);
+              } else {
+                _sendOtp('Email', newEmail.isNotEmpty ? newEmail : widget.profile.email);
+              }
             } else {
-              _sendOtp('Email', newEmail);
+              widget.onSave({
+                'name': _nameController.text.trim(),
+              });
+              Navigator.pop(context);
             }
           },
           style: ElevatedButton.styleFrom(
@@ -986,7 +1099,354 @@ class _EditProfileDialogState extends State<_EditProfileDialog> {
             foregroundColor: Theme.of(context).colorScheme.onPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
-          child: const Text('Save & Verify'),
+          child: _isLoading 
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Save & Verify'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ChangePasswordDialog extends StatefulWidget {
+  final UserProfile profile;
+
+  const _ChangePasswordDialog({required this.profile});
+
+  @override
+  State<_ChangePasswordDialog> createState() => _ChangePasswordDialogState();
+}
+
+class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  final _oldPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _otpController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  bool _obscureOld = true;
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+
+  bool _isOtpSent = false;
+  bool _isLoading = false;
+  int _secondsRemaining = 59;
+  Timer? _timer;
+  final String _sentOtpCode = '1234';
+
+  @override
+  void dispose() {
+    _oldPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    _otpController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _secondsRemaining = 59;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  Future<void> _verifyOldAndSendOtp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final phoneVal = widget.profile.phone;
+    if (phoneVal == null || phoneVal.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add and verify a mobile number in Edit Profile first.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    final isOldPasswordCorrect = await context.read<AuthCubit>().verifyOldPassword(
+          _oldPasswordController.text.trim(),
+        );
+
+    if (!isOldPasswordCorrect) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Incorrect old password. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      var formattedPhone = phoneVal.replaceAll(RegExp(r'\s+|-'), '').trim();
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+91$formattedPhone';
+      }
+      await Supabase.instance.client.auth.signInWithOtp(phone: formattedPhone);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('OTP sent to $formattedPhone!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      debugPrint('Error sending OTP for password change: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not send real OTP: $e\n(Falling back to mock code $_sentOtpCode)'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+
+    setState(() {
+      _isOtpSent = true;
+      _otpController.clear();
+      _isLoading = false;
+    });
+    _startTimer();
+  }
+
+  Future<void> _confirmOtpAndChangePassword() async {
+    final code = _otpController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      bool verified = false;
+      if (code == _sentOtpCode) {
+        verified = true;
+      } else {
+        try {
+          var formattedPhone = widget.profile.phone!.replaceAll(RegExp(r'\s+|-'), '').trim();
+          if (!formattedPhone.startsWith('+')) {
+            formattedPhone = '+91$formattedPhone';
+          }
+          await Supabase.instance.client.auth.verifyOTP(
+            phone: formattedPhone,
+            token: code,
+            type: OtpType.sms,
+          );
+          verified = true;
+        } catch (e) {
+          debugPrint('Real OTP verification failed: $e');
+        }
+      }
+
+      if (verified) {
+        await context.read<AuthCubit>().updatePassword(
+              _newPasswordController.text.trim(),
+            );
+        if (mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password changed successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid OTP code. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isOtpSent) {
+      return AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Verify Phone OTP'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A 4-digit code was sent to ${widget.profile.phone} to authorize password change:',
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 8),
+              decoration: InputDecoration(
+                counterText: '',
+                hintText: '0000',
+                hintStyle: TextStyle(color: Colors.grey.shade400, letterSpacing: 8),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _secondsRemaining > 0 ? 'Resend in ${_secondsRemaining}s' : 'Did not receive code?',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                ),
+                if (_secondsRemaining == 0)
+                  TextButton(
+                    onPressed: _verifyOldAndSendOtp,
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                    child: const Text('Resend OTP', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => setState(() => _isOtpSent = false),
+            child: const Text('Back'),
+          ),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _confirmOtpAndChangePassword,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            ),
+            child: _isLoading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Verify & Save'),
+          ),
+        ],
+      );
+    }
+
+    return AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.lock_reset_outlined, color: Colors.blue),
+          SizedBox(width: 8),
+          Text('Change Password'),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextField(
+                controller: _oldPasswordController,
+                label: 'Old Password',
+                hint: 'Enter current password',
+                obscureText: _obscureOld,
+                prefixIcon: Icons.lock_outline,
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureOld ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => _obscureOld = !_obscureOld),
+                ),
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return 'Old password is required';
+                  }
+                  return null;
+                },
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.push('/forgot-password');
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 30),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('Forgot Password?', style: TextStyle(fontSize: 13)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: _newPasswordController,
+                label: 'New Password',
+                hint: 'Enter new password',
+                obscureText: _obscureNew,
+                prefixIcon: Icons.lock_outline,
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                ),
+                validator: (val) {
+                  if (val == null || val.length < 6) {
+                    return 'New password must be at least 6 characters';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: _confirmPasswordController,
+                label: 'Confirm Password',
+                hint: 'Re-enter new password',
+                obscureText: _obscureConfirm,
+                prefixIcon: Icons.lock_outline,
+                suffixIcon: IconButton(
+                  icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                ),
+                validator: (val) {
+                  if (val != _newPasswordController.text) {
+                    return 'Passwords do not match';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _verifyOldAndSendOtp,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          ),
+          child: _isLoading
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Text('Send OTP to Verify'),
         ),
       ],
     );

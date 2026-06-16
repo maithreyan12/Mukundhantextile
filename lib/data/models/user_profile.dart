@@ -12,6 +12,8 @@ class UserProfile extends Equatable {
   final String? phone;
   final bool isBanned;
   final DateTime createdAt;
+  final bool isPhoneVerified;
+  final bool isEmailVerified;
 
   const UserProfile({
     required this.id,
@@ -22,6 +24,8 @@ class UserProfile extends Equatable {
     this.phone,
     this.isBanned = false,
     required this.createdAt,
+    this.isPhoneVerified = false,
+    this.isEmailVerified = false,
   });
 
   bool get isAdmin => role == UserRole.admin || email == AppConstants.adminEmail;
@@ -40,6 +44,8 @@ class UserProfile extends Equatable {
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
           : DateTime.now(),
+      isPhoneVerified: json['is_phone_verified'] as bool? ?? false,
+      isEmailVerified: json['is_email_verified'] as bool? ?? false,
     );
   }
 
@@ -48,6 +54,8 @@ class UserProfile extends Equatable {
         'email': email,
         'avatar_url': avatarUrl,
         'phone': phone,
+        'is_phone_verified': isPhoneVerified,
+        'is_email_verified': isEmailVerified,
       };
 
   UserProfile copyWith({
@@ -57,6 +65,8 @@ class UserProfile extends Equatable {
     String? phone,
     UserRole? role,
     bool? isBanned,
+    bool? isPhoneVerified,
+    bool? isEmailVerified,
   }) {
     return UserProfile(
       id: id,
@@ -67,10 +77,22 @@ class UserProfile extends Equatable {
       phone: phone ?? this.phone,
       isBanned: isBanned ?? this.isBanned,
       createdAt: createdAt,
+      isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, name, email, avatarUrl, role, phone, isBanned, createdAt];
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        avatarUrl,
+        role,
+        phone,
+        isBanned,
+        createdAt,
+        isPhoneVerified,
+        isEmailVerified,
+      ];
 }

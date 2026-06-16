@@ -19,6 +19,7 @@ class AppConstants {
   static const String appName = "Mugundhan Tex & Readymades";
   static const String appTagline = 'Shop Smart, Live Better';
   static const String currency = '₹';
+  static const String appVersion = '1.0.0';
 
   // ── Contact Info ─────────────────────────────────────
   static const String contactPhone = '96777 81159';

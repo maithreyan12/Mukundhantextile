@@ -59,8 +59,8 @@ extension NumExtensions on num {
 
 // ── DateTime Extensions ────────────────────────────────
 extension DateTimeExtensions on DateTime {
-  String get formatted => DateFormat('dd MMM yyyy').format(this);
-  String get formattedWithTime => DateFormat('dd MMM yyyy, hh:mm a').format(this);
+  String get formatted => DateFormat('dd MMM yyyy').format(toLocal());
+  String get formattedWithTime => DateFormat('dd MMM yyyy, hh:mm a').format(toLocal());
   String get timeAgo {
     final diff = DateTime.now().difference(this);
     if (diff.inDays > 365) return '${diff.inDays ~/ 365}y ago';

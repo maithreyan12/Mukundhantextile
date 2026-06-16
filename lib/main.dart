@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'core/router.dart';
@@ -34,11 +35,30 @@ void main() async {
     anonKey: AppConstants.supabaseAnonKey,
   );
 
-  runApp(const ECommerceApp());
+  // Load theme settings from SharedPreferences
+  int colorIndex = 0;
+  ThemeMode themeMode = ThemeMode.dark;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    colorIndex = prefs.getInt('color_theme_index') ?? 0;
+    final modeIndex = prefs.getInt('theme_mode_index') ?? 2;
+    themeMode = ThemeMode.values[modeIndex.clamp(0, 2)];
+  } catch (e) {
+    debugPrint('⚠️ SharedPreferences load error: $e');
+  }
+
+  runApp(ECommerceApp(initialColorIndex: colorIndex, initialThemeMode: themeMode));
 }
 
 class ECommerceApp extends StatefulWidget {
-  const ECommerceApp({super.key});
+  final int initialColorIndex;
+  final ThemeMode initialThemeMode;
+
+  const ECommerceApp({
+    super.key,
+    required this.initialColorIndex,
+    required this.initialThemeMode,
+  });
 
   @override
   State<ECommerceApp> createState() => _ECommerceAppState();
@@ -73,7 +93,10 @@ class _ECommerceAppState extends State<ECommerceApp> {
         BlocProvider(create: (_) => WishlistCubit()..loadWishlistIds()),
         BlocProvider(create: (_) => OrdersCubit()),
         BlocProvider(create: (_) => NotificationCubit()),
-        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => ThemeCubit(
+          initialColorIndex: widget.initialColorIndex,
+          initialMode: widget.initialThemeMode,
+        )),
       ],
       child: BlocBuilder<ThemeCubit, ThemeState>(
         builder: (context, themeState) {

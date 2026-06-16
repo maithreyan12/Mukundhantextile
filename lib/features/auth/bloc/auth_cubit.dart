@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
+import '../../../data/models/user_profile.dart';
 import '../../../data/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -172,10 +173,22 @@ class AuthCubit extends Cubit<AuthState> {
   // ── Update Profile ────────────────────────────────────
   Future<void> updateProfile(Map<String, dynamic> updates) async {
     try {
+      final newEmail = updates['email'];
+      if (newEmail != null && newEmail.isNotEmpty && newEmail != _authRepo.currentUser?.email) {
+        try {
+          await Supabase.instance.client.auth.updateUser(
+            UserAttributes(email: newEmail),
+          );
+        } catch (authError) {
+          debugPrint('⚠️ Auth email update pending or failed: $authError');
+          // Allow database profile update to proceed even if auth email change is pending
+        }
+      }
       await _authRepo.updateProfile(updates);
       await _loadProfile();
     } catch (e) {
       emit(AuthError(e.toString()));
+      rethrow;
     }
   }
 
@@ -190,6 +203,16 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  // ── Verify Old Password ───────────────────────────────
+  Future<bool> verifyOldPassword(String oldPassword) async {
+    return _authRepo.verifyOldPassword(oldPassword);
+  }
+
+  // ── Check Phone Unique ────────────────────────────────
+  Future<bool> checkPhoneUnique(String phone) async {
+    return _authRepo.checkPhoneUnique(phone);
+  }
+
   // ── Sign Out ──────────────────────────────────────────
   Future<void> signOut() async {
     await _authRepo.signOut();
@@ -199,6 +222,120 @@ class AuthCubit extends Cubit<AuthState> {
   // ── Refresh Profile ───────────────────────────────────
   Future<void> refreshProfile() async {
     await _loadProfile();
+  }
+
+  // ── Find Profile by Phone ─────────────────────────────
+  Future<UserProfile?> findProfileByPhone(String phone) async {
+    final cleanedPhone = phone.replaceAll(RegExp(r'\s+|-'), '').trim();
+    if (cleanedPhone.isEmpty) return null;
+    try {
+      final data = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('phone', cleanedPhone)
+          .maybeSingle();
+      if (data != null) {
+        return UserProfile.fromJson(data);
+      }
+    } catch (e) {
+      debugPrint('Error finding profile by phone: $e');
+    }
+    return null;
+  }
+
+  // ── Sign Up with Phone ────────────────────────────────
+  Future<void> signUpWithPhone({
+    required String phone,
+    required String name,
+  }) async {
+    _isSigningIn = true;
+    emit(AuthLoading());
+    try {
+      final cleanedPhone = phone.replaceAll(RegExp(r'\s+|-'), '').trim();
+      final email = '$cleanedPhone@phone.mukundhantextile.com';
+      final password = 'PhoneLogin@12345';
+      
+      await _authRepo.signUp(
+        email: email,
+        password: password,
+        name: name,
+      );
+      
+      // Update the profile's phone and verify it
+      await _authRepo.updateProfile({
+        'phone': cleanedPhone,
+        'is_phone_verified': true,
+      });
+      
+      await _loadProfile();
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    } finally {
+      _isSigningIn = false;
+    }
+  }
+
+  // ── Sign In with Phone Password ───────────────────────
+  Future<void> signInWithPhonePassword({
+    required String phone,
+    required String email,
+  }) async {
+    _isSigningIn = true;
+    emit(AuthLoading());
+    try {
+      final password = 'PhoneLogin@12345';
+      await _authRepo.signIn(email: email, password: password);
+      await _loadProfile();
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    } finally {
+      _isSigningIn = false;
+    }
+  }
+
+  // ── Send Login OTP (Real Supabase Auth) ────────────────
+  Future<void> sendLoginOtp(String phone) async {
+    emit(AuthLoading());
+    try {
+      final cleanedPhone = phone.replaceAll(RegExp(r'\s+|-'), '').trim();
+      String formattedPhone = cleanedPhone;
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+$formattedPhone';
+      }
+      await _authRepo.signInWithOtp(phone: formattedPhone);
+      emit(AuthUnauthenticated());
+    } catch (e) {
+      emit(AuthError(e.toString()));
+      rethrow;
+    }
+  }
+
+  // ── Verify Login OTP (Real Supabase Auth) ──────────────
+  Future<void> verifyLoginOtp({
+    required String phone,
+    required String token,
+  }) async {
+    _isSigningIn = true;
+    emit(AuthLoading());
+    try {
+      final cleanedPhone = phone.replaceAll(RegExp(r'\s+|-'), '').trim();
+      String formattedPhone = cleanedPhone;
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = '+$formattedPhone';
+      }
+      await _authRepo.verifyOtp(phone: formattedPhone, token: token);
+      await _loadProfile();
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    } finally {
+      _isSigningIn = false;
+    }
+  }
+
+  void clearError() {
+    if (state is AuthError) {
+      emit(AuthUnauthenticated());
+    }
   }
 
   @override

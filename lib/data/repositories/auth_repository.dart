@@ -68,6 +68,29 @@ class AuthRepository {
     return response;
   }
 
+  // ── Phone OTP Sign In ─────────────────────────────────
+  Future<void> signInWithOtp({required String phone}) async {
+    await _client.auth.signInWithOtp(phone: phone);
+  }
+
+  Future<AuthResponse> verifyOtp({
+    required String phone,
+    required String token,
+  }) async {
+    final response = await _client.auth.verifyOTP(
+      phone: phone,
+      token: token,
+      type: OtpType.sms,
+    );
+    if (response.user != null) {
+      await _ensureProfileExists(
+        userId: response.user!.id,
+        phone: phone,
+      );
+    }
+    return response;
+  }
+
   // ── Google Sign In ────────────────────────────────────
   Future<bool> signInWithGoogle() async {
     try {
@@ -219,7 +242,54 @@ class AuthRepository {
         debugPrint('⚠️ updateProfile skipped: profiles table missing');
         return;
       }
+      if (e.message.contains('is_phone_verified') || e.message.contains('is_email_verified') || e.code == 'PGRST204') {
+        final cleanUpdates = Map<String, dynamic>.from(updates)
+          ..remove('is_phone_verified')
+          ..remove('is_email_verified');
+        if (cleanUpdates.isNotEmpty) {
+          await _client.from('profiles').update(cleanUpdates).eq('id', userId);
+          return;
+        }
+      }
       rethrow;
+    }
+  }
+
+  // ── Verify Old Password ───────────────────────────────
+  Future<bool> verifyOldPassword(String oldPassword) async {
+    final email = currentUser?.email;
+    if (email == null) return false;
+    try {
+      await _client.auth.signInWithPassword(
+        email: email,
+        password: oldPassword,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ── Check if Phone Number is Unique ──────────────────
+  Future<bool> checkPhoneUnique(String phone) async {
+    final userId = currentUserId;
+    if (userId == null) return true;
+    
+    final cleanedPhone = phone.replaceAll(RegExp(r'\s+|-'), '').trim();
+    if (cleanedPhone.isEmpty) return true;
+
+    try {
+      final data = await _client
+          .from('profiles')
+          .select('id')
+          .eq('phone', cleanedPhone)
+          .neq('id', userId)
+          .maybeSingle();
+
+      return data == null;
+    } catch (e) {
+      debugPrint('Check phone unique error: $e');
+      return true;
     }
   }
 
@@ -228,6 +298,7 @@ class AuthRepository {
     required String userId,
     String email = '',
     String name = '',
+    String? phone,
   }) async {
     try {
       final normalizedEmail = email.trim().toLowerCase();
@@ -239,25 +310,56 @@ class AuthRepository {
           .eq('id', userId)
           .maybeSingle();
 
+      final actualPhone = phone ?? currentUser?.phone;
+
       if (existing == null) {
         // Create the profile
-        await _client.from('profiles').insert({
-          'id': userId,
-          'name': name,
-          'email': email,
-          'role': isAdminUser ? 'admin' : 'customer',
-        });
-      } else if (isAdminUser) {
-        await _client.from('profiles').update({'role': 'admin'}).eq('id', userId);
+        try {
+          await _client.from('profiles').insert({
+            'id': userId,
+            'name': name.isEmpty ? (actualPhone ?? 'User') : name,
+            'email': email,
+            'phone': actualPhone,
+            'is_phone_verified': true,
+            'role': isAdminUser ? 'admin' : 'customer',
+          });
+        } on PostgrestException catch (insertErr) {
+          if (insertErr.message.contains('is_phone_verified') || insertErr.code == 'PGRST204') {
+            await _client.from('profiles').insert({
+              'id': userId,
+              'name': name.isEmpty ? (actualPhone ?? 'User') : name,
+              'email': email,
+              'phone': actualPhone,
+              'role': isAdminUser ? 'admin' : 'customer',
+            });
+          } else {
+            rethrow;
+          }
+        }
+      } else {
+        try {
+          await _client.from('profiles').update({
+            if (actualPhone != null) 'phone': actualPhone,
+            'is_phone_verified': true,
+          }).eq('id', userId);
+        } on PostgrestException catch (updateErr) {
+          if (updateErr.message.contains('is_phone_verified') || updateErr.code == 'PGRST204') {
+            await _client.from('profiles').update({
+              if (actualPhone != null) 'phone': actualPhone,
+            }).eq('id', userId);
+          } else {
+            rethrow;
+          }
+        }
+        if (isAdminUser) {
+          await _client.from('profiles').update({'role': 'admin'}).eq('id', userId);
+        }
       }
     } on PostgrestException catch (e) {
       if (_isMissingProfilesTableError(e)) {
         debugPrint('⚠️ ensureProfileExists skipped: profiles table missing');
         return;
       }
-      // Silently fail — the trigger might have already created it
-      // or there may be a temporary RLS issue
-      // ignore: avoid_print
       print('ensureProfileExists fallback: $e');
     }
   }

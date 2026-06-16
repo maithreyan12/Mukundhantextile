@@ -65,8 +65,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   void _showInvoiceDialog(BuildContext context) {
     if (_order == null) return;
     final downloadDate = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
-    final listingPrice = _order!.totalAmount * 1.5;
-    final otherDiscount = _order!.finalAmount - (listingPrice + 7.0);
+    final subtotal = _order!.totalAmount;
+    final discount = _order!.discountAmount;
 
     showDialog(
       context: context,
@@ -114,7 +114,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
                 // Invoice metadata
                 _invoiceMetaRow('Order ID:', '#${_order!.id.toUpperCase()}'),
-                _invoiceMetaRow('Order Date:', _order!.createdAt.formattedWithTime),
+                _invoiceMetaRow('Order Date:', _order!.createdAt.toLocal().formattedWithTime),
                 _invoiceMetaRow('Downloaded on:', downloadDate),
                 _invoiceMetaRow('Payment Status:', 'PAID via ${_order!.paymentMethod.toUpperCase()}'),
                 const Divider(height: 24),
@@ -158,11 +158,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 const Divider(height: 24),
 
                 // Total Summary
-                _buildInvoicePriceRow('Listing price:', listingPrice),
+                _buildInvoicePriceRow('Subtotal:', subtotal),
                 const SizedBox(height: 6),
-                _buildInvoicePriceRow('Total fees:', 7.0),
-                const SizedBox(height: 6),
-                _buildInvoicePriceRow('Discount:', otherDiscount, isDiscount: true),
+                _buildInvoicePriceRow('Shipping:', 0),
+                if (discount > 0) ...[
+                  const SizedBox(height: 6),
+                  _buildInvoicePriceRow('Discount:', -discount, isDiscount: true),
+                ],
                 const Divider(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -240,7 +242,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildInvoicePriceRow(String label, double val, {bool isDiscount = false}) {
-    final displayVal = val < 0 || isDiscount ? '-₹${val.abs().toStringAsFixed(0)}' : '₹${val.toStringAsFixed(0)}';
+    final displayVal = label.toLowerCase().contains('shipping') && val == 0
+        ? 'FREE'
+        : (val < 0 || isDiscount ? '-₹${val.abs().toStringAsFixed(0)}' : '₹${val.toStringAsFixed(0)}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -530,17 +534,13 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
                                   ),
                                   const SizedBox(height: 16),
-                                  _buildPriceRow('Listing price', _order!.totalAmount * 1.5),
+                                  _buildPriceRow('Subtotal', _order!.totalAmount),
+                                  if (_order!.discountAmount > 0) ...[
+                                    const SizedBox(height: 10),
+                                    _buildPriceRow('Coupon Discount', -_order!.discountAmount, valueColor: Colors.green),
+                                  ],
                                   const SizedBox(height: 10),
-                                  _buildPriceRow('Special price', _order!.totalAmount),
-                                  const SizedBox(height: 10),
-                                  _buildPriceRow('Total fees', 7.0),
-                                  const SizedBox(height: 10),
-                                  _buildPriceRow(
-                                    'Other discount',
-                                    _order!.finalAmount - (_order!.totalAmount * 1.5) - 7.0,
-                                    valueColor: Colors.green,
-                                  ),
+                                  _buildPriceRow('Shipping', 0),
                                   const Divider(height: 24),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -663,7 +663,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   Widget _buildPriceRow(String label, double value, {Color? valueColor}) {
-    final displayVal = value < 0 ? '-₹${value.abs().toStringAsFixed(0)}' : '₹${value.toStringAsFixed(0)}';
+    final displayVal = label.toLowerCase() == 'shipping' && value == 0
+        ? 'FREE'
+        : (value < 0 ? '-₹${value.abs().toStringAsFixed(0)}' : '₹${value.toStringAsFixed(0)}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -743,7 +745,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   if (isActive) ...[
                     const SizedBox(height: 2),
                     Text(
-                      _order!.createdAt.add(Duration(days: idx)).formattedWithTime,
+                      _order!.createdAt.toLocal().add(Duration(days: idx)).formattedWithTime,
                       style: TextStyle(
                         fontSize: 10,
                         color: Colors.grey.shade500,

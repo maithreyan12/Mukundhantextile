@@ -8,6 +8,8 @@ class Review extends Equatable {
   final String? comment;
   final String? userName;
   final String? userAvatar;
+  final String? productName;
+  final String? productImage;
   final DateTime createdAt;
 
   const Review({
@@ -18,11 +20,14 @@ class Review extends Equatable {
     this.comment,
     this.userName,
     this.userAvatar,
+    this.productName,
+    this.productImage,
     required this.createdAt,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     final profile = json['profiles'] as Map<String, dynamic>?;
+    final product = json['products'] as Map<String, dynamic>?;
     return Review(
       id: json['id'] as String,
       userId: json['user_id'] as String,
@@ -31,6 +36,8 @@ class Review extends Equatable {
       comment: json['comment'] as String?,
       userName: profile?['name'] as String?,
       userAvatar: profile?['avatar_url'] as String?,
+      productName: product?['name'] as String?,
+      productImage: product?['image_url'] as String?,
       createdAt: DateTime.parse(
           json['created_at'] as String? ?? DateTime.now().toIso8601String()),
     );

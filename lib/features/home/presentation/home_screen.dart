@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
@@ -27,6 +29,94 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     context.read<HomeCubit>().loadHome();
+    _checkAppUpdate();
+  }
+
+  Future<void> _checkAppUpdate() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('app_settings')
+          .select()
+          .eq('key', 'app_version_info')
+          .maybeSingle();
+
+      if (response != null && mounted) {
+        final value = response['value'] as Map<String, dynamic>;
+        final serverVersion = value['version'] as String? ?? '1.0.0';
+        final apkUrl = value['apk_url'] as String? ?? '';
+        final releaseNotes = value['release_notes'] as String? ?? 'New features and updates.';
+
+        if (_isNewerVersion(AppConstants.appVersion, serverVersion) && apkUrl.isNotEmpty) {
+          _showUpdateDialog(serverVersion, apkUrl, releaseNotes);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking for updates: $e');
+    }
+  }
+
+  bool _isNewerVersion(String current, String latest) {
+    try {
+      final currParts = current.split('.').map(int.parse).toList();
+      final lateParts = latest.split('.').map(int.parse).toList();
+      for (var i = 0; i < 3; i++) {
+        final c = i < currParts.length ? currParts[i] : 0;
+        final l = i < lateParts.length ? lateParts[i] : 0;
+        if (l > c) return true;
+        if (c > l) return false;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  void _showUpdateDialog(String version, String url, String notes) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.system_update_alt_rounded, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 8),
+            const Text('Update Available!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'A new version ($version) of Mugundhan Tex & Readymades is available.',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text('Release Notes:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(notes, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Later', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+               backgroundColor: Theme.of(context).colorScheme.primary,
+               foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            ),
+            child: const Text('Update Now'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -775,7 +865,7 @@ class _HomeScreenState extends State<HomeScreen> {
       {'icon': Icons.local_shipping_outlined, 'label': 'Free Delivery', 'sub': 'On orders above ₹999'},
       {'icon': Icons.verified_outlined, 'label': '100% Genuine', 'sub': 'Quality fabrics'},
       {'icon': Icons.autorenew_rounded, 'label': 'Easy Returns', 'sub': '7-day return policy'},
-      {'icon': Icons.support_agent_rounded, 'label': '24/7 Support', 'sub': 'Call: +91 97517 97827'},
+      {'icon': Icons.support_agent_rounded, 'label': '24/7 Support', 'sub': 'Call: ${AppConstants.contactPhone}'},
     ];
 
     return Center(

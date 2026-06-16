@@ -209,12 +209,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       final isFailed = order.status == OrderStatus.cancelled;
                       final isDelivered = order.status == OrderStatus.delivered;
 
-                      // Display values
                       final titleText = isFailed
                           ? 'Order Not Placed'
                           : isDelivered
-                              ? 'Delivered on ${order.createdAt.formatted}'
-                              : '${order.status.label} on ${order.createdAt.formatted}';
+                              ? 'Delivered on ${order.createdAt.toLocal().formatted}'
+                              : '${order.status.label} on ${order.createdAt.toLocal().formatted}';
 
                       // Get first item info
                       final firstItem = order.items.isNotEmpty ? order.items[0] : null;
@@ -285,6 +284,15 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           Text(
                                             'Mugundhan Basket (${order.items.length} ${order.items.length == 1 ? "item" : "items"})',
                                             style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Total Paid: ${order.finalAmount.toCurrency}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              color: Theme.of(context).colorScheme.primary,
+                                            ),
                                           ),
                                         ],
                                       ),
