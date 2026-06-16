@@ -84,8 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             color: context.isDarkMode
                                 ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
+                                : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: context.isDarkMode ? Colors.white12 : Colors.grey.shade300,
+                              width: 1,
+                            ),
                           ),
                           child: Row(
                             children: [

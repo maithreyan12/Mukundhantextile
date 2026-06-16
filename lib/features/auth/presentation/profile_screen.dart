@@ -7,7 +7,6 @@ import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/premium_button.dart';
-import '../../../shared/widgets/cached_image.dart';
 import '../bloc/auth_cubit.dart';
 import '../bloc/auth_state.dart';
 
@@ -17,8 +16,18 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.isDarkMode ? const Color(0xFF0F0F1A) : Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(
+          'My Account',
+          style: context.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            color: context.isDarkMode ? Colors.white : Colors.black87,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
       ),
       body: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
@@ -27,184 +36,466 @@ class ProfileScreen extends StatelessWidget {
           }
 
           final profile = state.profile;
+          final isAdmin = profile.email == 'mukundhantextile@gmail.com';
+
           return Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: SingleChildScrollView(
-            padding: EdgeInsets.all(Responsive.horizontalPadding(context)),
-            child: Column(
-              children: [
-                // Avatar
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: context.isDarkMode ? Colors.white10 : Colors.black12,
-                      child: profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? ClipOval(
-                              child: CachedImage(
-                                imageUrl: profile.avatarUrl,
-                                width: 80,
-                                height: 80,
-                              ),
-                            )
-                          : Text(
-                              profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'U',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.w800,
-                                color: context.isDarkMode ? Colors.white : Colors.black,
+                    // ── 1. Profile Header Box ──────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  profile.name.isNotEmpty ? profile.name : 'User',
+                                  style: context.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    color: context.isDarkMode ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Coins Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFC200).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFFFC200).withValues(alpha: 0.4),
                               ),
                             ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile.name.toUpperCase(), style: context.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 4),
-                          Text(profile.email, style: context.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500)),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.monetization_on, size: 16, color: Color(0xFFFFC200)),
+                                SizedBox(width: 4),
+                                Text(
+                                  '150',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 2. Quick Actions Grid (2x2 Box Cards) ────────────────
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        childAspectRatio: 2.8,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        children: [
+                          _quickActionButton(
+                            context,
+                            icon: Icons.inventory_2_outlined,
+                            label: 'Orders',
+                            onTap: () => context.push('/orders'),
+                          ),
+                          _quickActionButton(
+                            context,
+                            icon: Icons.favorite_border,
+                            label: 'Wishlist',
+                            onTap: () => context.push('/wishlist'),
+                          ),
+                          _quickActionButton(
+                            context,
+                            icon: Icons.card_giftcard_outlined,
+                            label: 'Coupons',
+                            onTap: () => _showCouponsDialog(context),
+                          ),
+                          _quickActionButton(
+                            context,
+                            icon: Icons.headset_mic_outlined,
+                            label: 'Help Center',
+                            onTap: () => _showStoreInfoSheet(context),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 3. Email Verification Banner Box ─────────────────────
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.mail_outline_rounded, size: 28, color: Colors.blue),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Add/Verify your Email',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Get latest updates of your orders',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _showEditProfileDialog(context, profile.name, profile.email, profile.phone ?? ''),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            child: const Text('Update', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 4. Admin Dashboard (Mukundhan Tex Admin Only) ────────
+                    if (isAdmin) ...[
+                      _sectionHeader('Admin Controls'),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: _settingsTile(
+                          context,
+                          icon: Icons.admin_panel_settings_outlined,
+                          title: 'Admin Dashboard',
+                          onTap: () => context.push('/admin'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    // ── 5. Account Settings Box ──────────────────────────────
+                    _sectionHeader('Account Settings'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _settingsTile(
+                            context,
+                            icon: Icons.person_outline,
+                            title: 'Edit Profile',
+                            onTap: () => _showEditProfileDialog(context, profile.name, profile.email, profile.phone ?? ''),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.location_on_outlined,
+                            title: 'Saved Addresses',
+                            onTap: () => context.push('/address-form'),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.translate,
+                            title: 'Select Language',
+                            onTap: () => _showLanguageDialog(context),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.notifications_none_outlined,
+                            title: 'Notification Settings',
+                            onTap: () => context.push('/notifications'),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.privacy_tip_outlined,
+                            title: 'Privacy Center',
+                            onTap: () => _showPrivacyDialog(context),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 6. My Activity Box ───────────────────────────────────
+                    _sectionHeader('My Activity'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _settingsTile(
+                            context,
+                            icon: Icons.rate_review_outlined,
+                            title: 'Reviews',
+                            onTap: () => context.showSnackBar('Your Reviews will appear here!'),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.question_answer_outlined,
+                            title: 'Questions & Answers',
+                            onTap: () => context.showSnackBar('Your Q&A history will appear here!'),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 7. Earn with Mugundhan Tex Box ────────────────────────
+                    _sectionHeader('Earn with Mugundhan Tex'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _settingsTile(
+                            context,
+                            icon: Icons.storefront_outlined,
+                            title: 'Sell on Mugundhan Tex',
+                            onTap: () => context.showSnackBar('Seller registration opening soon!'),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // ── 8. Feedback & Information Box ─────────────────────────
+                    _sectionHeader('Feedback & Information'),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _settingsTile(
+                            context,
+                            icon: Icons.description_outlined,
+                            title: 'Terms, Policies and Licenses',
+                            onTap: () => _showAboutSheet(context),
+                          ),
+                          _settingsTile(
+                            context,
+                            icon: Icons.help_outline,
+                            title: 'Browse FAQs',
+                            onTap: () => context.showSnackBar('FAQ section opening soon!'),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── 9. Log Out Button Box ────────────────────────────────
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: OutlinedButton(
+                        onPressed: () => context.read<AuthCubit>().signOut(),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                          side: BorderSide.none,
+                          backgroundColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Log Out',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 48),
                   ],
                 ),
-                const SizedBox(height: 48),
-
-                // Menu Items
-                _menuItem(
-                  context,
-                  icon: Icons.person_outline,
-                  title: 'Edit Profile',
-                  onTap: () => _showEditProfileDialog(context, profile.name),
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.location_on_outlined,
-                  title: 'My Addresses',
-                  onTap: () => context.push('/address-form'),
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.receipt_long_outlined,
-                  title: 'My Orders',
-                  onTap: () => context.push('/orders'),
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.favorite_border,
-                  title: 'Wishlist',
-                  onTap: () => context.go('/wishlist'),
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.notifications_none_rounded,
-                  title: 'Notifications',
-                  onTap: () => context.push('/notifications'),
-                ),
-                if (profile.isAdmin || profile.email == AppConstants.adminEmail)
-                  _menuItem(
-                    context,
-                    icon: Icons.admin_panel_settings_outlined,
-                    title: 'Admin Dashboard',
-                    onTap: () => context.push('/admin'),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                const SizedBox(height: 16),
-
-                // ── Contact & About ───────────────────
-                _menuItem(
-                  context,
-                  icon: Icons.phone_outlined,
-                  title: 'Call Us — ${AppConstants.contactPhone}',
-                  onTap: () async {
-                    final uri = Uri.parse('tel:${AppConstants.contactPhone.replaceAll(' ', '')}');
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    }
-                  },
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.location_on_outlined,
-                  title: 'Visit Store',
-                  onTap: () => _showStoreInfoSheet(context),
-                ),
-                _menuItem(
-                  context,
-                  icon: Icons.info_outline,
-                  title: 'About Mugundhan Tex & Readymades',
-                  onTap: () => _showAboutSheet(context),
-                ),
-
-                const SizedBox(height: 32),
-                PremiumButton(
-                  onPressed: () => context.read<AuthCubit>().signOut(),
-                  backgroundColor: context.isDarkMode ? const Color(0xFF1A1A1A) : Colors.grey.shade100,
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.logout, color: Color(0xFFFF6B6B)),
-                      SizedBox(width: 8),
-                      Text('SIGN OUT', style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.w800, letterSpacing: 0.5)),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          ),
           );
         },
       ),
     );
   }
 
-  Widget _menuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        onTap: onTap,
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: (color ?? (context.isDarkMode ? Colors.white : Colors.black)).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: color ?? (context.isDarkMode ? Colors.white : Colors.black), size: 20),
+  // ── Helper Widgets ──────────────────────────────────────────
+
+  Widget _quickActionButton(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+    final isDark = context.isDarkMode;
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
         ),
-        title: Text(title, style: context.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
-        trailing: const Icon(Icons.chevron_right, size: 20),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: context.isDarkMode ? const Color(0xFF222222) : Colors.grey.shade300, width: 1),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: Colors.blue.shade600),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
         ),
-        tileColor: context.isDarkMode
-            ? const Color(0xFF1A1A1A)
-            : Colors.white,
       ),
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, String currentName) {
+  Widget _sectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _settingsTile(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+    return ListTile(
+      onTap: onTap,
+      leading: Icon(icon, size: 20, color: Colors.blue.shade600),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      trailing: const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      dense: true,
+    );
+  }
+
+  // ── Dialogs & Sheets ────────────────────────────────────────
+
+  void _showEditProfileDialog(BuildContext context, String currentName, String currentEmail, String currentPhone) {
     final nameController = TextEditingController(text: currentName);
+    final emailController = TextEditingController(text: currentEmail);
+    final phoneController = TextEditingController(text: currentPhone);
+    
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Edit Profile'),
-        content: CustomTextField(
-          controller: nameController,
-          label: 'Name',
-          hint: 'Enter your name',
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextField(
+                controller: nameController,
+                label: 'Name',
+                hint: 'Enter your name',
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: emailController,
+                label: 'Email',
+                hint: 'Enter your email',
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: phoneController,
+                label: 'Phone number',
+                hint: 'Enter your phone number',
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -215,12 +506,110 @@ class ProfileScreen extends StatelessWidget {
             isFullWidth: false,
             backgroundColor: Theme.of(context).colorScheme.primary,
             onPressed: () {
-              context
-                  .read<AuthCubit>()
-                  .updateProfile({'name': nameController.text.trim()});
+              context.read<AuthCubit>().updateProfile({
+                'name': nameController.text.trim(),
+                'email': emailController.text.trim(),
+                'phone': phoneController.text.trim(),
+              });
               Navigator.pop(ctx);
             },
             child: const Text('SAVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showCouponsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Available Coupons'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _couponRow(context, 'WELCOME100', '₹100 Off on your first order'),
+            const Divider(),
+            _couponRow(context, 'FESTIVE15', '15% Off on premium sarees'),
+            const Divider(),
+            _couponRow(context, 'MUGUNDHAN50', '₹50 Off on orders above ₹500'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _couponRow(BuildContext context, String code, String desc) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        title: Text(
+          code,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+        ),
+        subtitle: Text(desc),
+        trailing: IconButton(
+          icon: const Icon(Icons.copy),
+          onPressed: () {
+            context.showSnackBar('Code $code copied!');
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Select Language'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () {
+              context.showSnackBar('Language set to English');
+              Navigator.pop(ctx);
+            },
+            child: const Text('English'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              context.showSnackBar('Language set to Tamil (தமிழ்)');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Tamil (தமிழ்)'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              context.showSnackBar('Language set to Hindi (हिंदी)');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Hindi (हिंदी)'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPrivacyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Privacy Center'),
+        content: const Text(
+          'Your privacy is important to us. All personal data is encrypted, and payment information is securely processed. We do not sell your personal data to third parties.',
+          style: TextStyle(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
           ),
         ],
       ),

@@ -33,13 +33,24 @@ class _CustomerShellState extends State<CustomerShell> {
   Widget build(BuildContext context) {
     final isDesktop = Responsive.isLargeScreen(context);
 
-    return Scaffold(
-      appBar: isDesktop ? _buildDesktopAppBar(context) : null,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
+    return PopScope(
+      canPop: _currentIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+        }
+      },
+      child: Scaffold(
+        appBar: isDesktop ? _buildDesktopAppBar(context) : null,
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(context),
       ),
-      bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(context),
     );
   }
 
@@ -167,7 +178,10 @@ class _CustomerShellState extends State<CustomerShell> {
                           label: 'Cart',
                           isActive: _currentIndex == 2,
                           badgeCount: cartState.itemCount,
-                          onTap: () => setState(() => _currentIndex = 2),
+                          onTap: () {
+                            setState(() => _currentIndex = 2);
+                            context.read<CartCubit>().loadCart();
+                          },
                         );
                       },
                     ),
@@ -203,6 +217,9 @@ class _CustomerShellState extends State<CustomerShell> {
           currentIndex: _currentIndex,
           onTap: (index) {
             setState(() => _currentIndex = index);
+            if (index == 2) {
+              context.read<CartCubit>().loadCart();
+            }
           },
           items: [
             const BottomNavigationBarItem(

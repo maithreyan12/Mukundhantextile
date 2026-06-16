@@ -164,40 +164,24 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     value: _totalRevenue.toCurrencyCompact,
                     icon: Icons.attach_money_rounded,
                     color: const Color(0xFF2ED573),
-                    bgGradient: [
-                      const Color(0xFF2ED573).withValues(alpha: 0.15),
-                      const Color(0xFF2ED573).withValues(alpha: 0.05),
-                    ],
                   ),
                   _kpiCard(
                     label: 'Orders',
                     value: '$_totalOrders',
                     icon: Icons.receipt_long_rounded,
                     color: Theme.of(context).colorScheme.primary,
-                    bgGradient: [
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
-                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-                    ],
                   ),
                   _kpiCard(
                     label: 'Users',
                     value: '$_totalUsers',
                     icon: Icons.people_rounded,
                     color: const Color(0xFF3498DB),
-                    bgGradient: [
-                      const Color(0xFF3498DB).withValues(alpha: 0.15),
-                      const Color(0xFF3498DB).withValues(alpha: 0.05),
-                    ],
                   ),
                   _kpiCard(
                     label: 'Products',
                     value: '$_totalProducts',
                     icon: Icons.inventory_2_rounded,
                     color: const Color(0xFFFF9F43),
-                    bgGradient: [
-                      const Color(0xFFFF9F43).withValues(alpha: 0.15),
-                      const Color(0xFFFF9F43).withValues(alpha: 0.05),
-                    ],
                   ),
                 ],
               );
@@ -216,13 +200,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
               decoration: BoxDecoration(
                 color: context.isDarkMode
-                    ? Colors.white.withValues(alpha: 0.06)
+                    ? const Color(0xFF1E1E2A)
                     : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: context.isDarkMode
-                      ? Colors.white12
-                      : Colors.grey.shade200,
+                      ? Colors.white10
+                      : Colors.grey.shade300,
                 ),
                 boxShadow: context.isDarkMode
                     ? []
@@ -357,10 +341,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF6B6B).withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(12),
+                      color: context.isDarkMode
+                          ? const Color(0xFF1E1E2A)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+                        color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
                       ),
                     ),
                     child: Row(
@@ -413,11 +399,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: context.isDarkMode
-                      ? Colors.white.withValues(alpha: 0.04)
-                      : const Color(0xFFF0EEFF),
-                  borderRadius: BorderRadius.circular(16),
+                      ? const Color(0xFF1E1E2A)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                    color: context.isDarkMode ? Colors.white10 : Colors.grey.shade300,
                   ),
                 ),
                 child: Column(
@@ -487,24 +473,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     required String value,
     required IconData icon,
     required Color color,
-    required List<Color> bgGradient,
   }) {
+    final isDark = context.isDarkMode;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: context.isDarkMode
-              ? [
-                  color.withValues(alpha: 0.12),
-                  color.withValues(alpha: 0.04),
-                ]
-              : bgGradient,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: isDark ? const Color(0xFF1E1E2A) : Colors.white,
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: color.withValues(alpha: 0.2),
+          color: isDark ? Colors.white10 : Colors.grey.shade300,
           width: 1,
         ),
       ),
@@ -512,31 +489,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                value,
+                style: context.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+            ],
           ),
-          const Spacer(),
-          Text(
-            value,
-            style: context.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              color: context.isDarkMode ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 8),
           Text(
             label,
             style: context.textTheme.bodySmall?.copyWith(
-              color: context.isDarkMode
-                  ? Colors.white60
-                  : Colors.black54,
-              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white60 : Colors.grey.shade600,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
             ),
           ),
         ],
