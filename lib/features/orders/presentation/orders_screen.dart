@@ -7,6 +7,7 @@ import '../../../shared/widgets/cached_image.dart';
 import '../bloc/orders_cubit.dart';
 import '../../cart/bloc/cart_cubit.dart';
 import '../../../data/models/order.dart';
+import '../../../data/repositories/review_repository.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -342,11 +343,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                           final currentRating = _orderRatings[order.id] ?? 0;
                                           final isFilled = starIdx < currentRating;
                                           return GestureDetector(
-                                            onTap: () {
+                                            onTap: () async {
+                                              final newRating = starIdx + 1;
                                               setState(() {
-                                                _orderRatings[order.id] = starIdx + 1;
+                                                _orderRatings[order.id] = newRating;
                                               });
-                                              context.showSnackBar('Thank you for rating this product!');
+                                              if (firstItem != null) {
+                                                try {
+                                                  await ReviewRepository().addReview(
+                                                    productId: firstItem.productId,
+                                                    rating: newRating,
+                                                  );
+                                                  if (mounted) {
+                                                    context.showSuccessSnackBar('Thank you for rating this product!');
+                                                  }
+                                                } catch (e) {
+                                                  if (mounted) {
+                                                    context.showSnackBar('Failed to save rating: $e', isError: true);
+                                                  }
+                                                }
+                                              }
                                             },
                                             child: Padding(
                                               padding: const EdgeInsets.only(right: 6),
@@ -379,9 +395,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                                   child: const Text('Cancel'),
                                                 ),
                                                 ElevatedButton(
-                                                  onPressed: () {
+                                                  onPressed: () async {
+                                                    final commentText = reviewCtrl.text.trim();
+                                                    final currentRating = _orderRatings[order.id] ?? 5;
                                                     Navigator.pop(ctx);
-                                                    context.showSuccessSnackBar('Thank you for your review!');
+                                                    if (firstItem != null) {
+                                                      try {
+                                                        await ReviewRepository().addReview(
+                                                          productId: firstItem.productId,
+                                                          rating: currentRating,
+                                                          comment: commentText.isNotEmpty ? commentText : null,
+                                                        );
+                                                        if (context.mounted) {
+                                                          context.showSuccessSnackBar('Thank you for your review!');
+                                                        }
+                                                      } catch (e) {
+                                                        if (context.mounted) {
+                                                          context.showSnackBar('Failed to save review: $e', isError: true);
+                                                        }
+                                                      }
+                                                    }
                                                   },
                                                   child: const Text('Submit'),
                                                 ),

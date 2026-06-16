@@ -80,6 +80,26 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant ProductListScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.categoryId != oldWidget.categoryId ||
+        widget.sort != oldWidget.sort ||
+        widget.maxPrice != oldWidget.maxPrice) {
+      if (_shouldShowGrid) {
+        context.read<ProductListCubit>().loadProducts(
+              categoryId: widget.categoryId,
+              sortBy: widget.sort == 'new'
+                  ? 'created_at'
+                  : widget.sort == 'popular'
+                      ? 'review_count'
+                      : 'created_at',
+              maxPrice: widget.maxPrice,
+            );
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -398,8 +418,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
                           children: [
                         // Promo Banner at top
                         GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
-                            context.push('/category/${selectedCategory.id}');
+                            context.push('/products?category=${selectedCategory.id}');
                           },
                           child: Container(
                             width: double.infinity,
@@ -438,7 +459,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Every Tuesday • Click to View',
+                                        'Everyday • Click to View',
                                         style: TextStyle(
                                           color: Colors.white.withValues(alpha: 0.9),
                                           fontSize: 11,
@@ -556,7 +577,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () => context.push('/category/${selectedCategory.id}'),
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => context.push('/products?category=${selectedCategory.id}'),
                               child: Text(
                                 'View All',
                                 style: TextStyle(
@@ -585,6 +607,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                             final badgeColor = [Colors.teal, Colors.blue, Colors.orange, Colors.red][index % 4];
 
                             return GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () => context.push('/product/${product.id}'),
                               child: Container(
                                 decoration: BoxDecoration(
@@ -685,6 +708,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     required VoidCallback onTap,
   }) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Column(
         children: [
