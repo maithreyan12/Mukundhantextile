@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// 12 Brand Color Themes for Mukundhan Textiles
+/// 12 Brand Color Themes for Mugundhan Textiles
 class AppColorTheme {
   final String name;
   final String emoji;

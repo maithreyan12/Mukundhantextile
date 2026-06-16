@@ -114,10 +114,11 @@ class AuthRepository {
         }
 
         // Fallback: Use Supabase's browser-based OAuth for mobile
+        // Use inAppBrowserView so the auth callback returns to the app
         final success = await _client.auth.signInWithOAuth(
           OAuthProvider.google,
           redirectTo: _authRedirectUrl,
-          authScreenLaunchMode: LaunchMode.externalApplication,
+          authScreenLaunchMode: LaunchMode.inAppBrowserView,
         );
         return success;
       }

@@ -8,6 +8,7 @@ import '../../../shared/widgets/shimmer_loading.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../wishlist/bloc/wishlist_cubit.dart';
+import '../../cart/bloc/cart_cubit.dart';
 import '../bloc/product_list_cubit.dart';
 
 class ProductListScreen extends StatefulWidget {
@@ -110,6 +111,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         onTap: () => context.push('/product/${product.id}'),
                         onWishlistTap: () =>
                             context.read<WishlistCubit>().toggleWishlist(product.id),
+                        onBuyNow: () {
+                          context.read<CartCubit>().addToCart(productId: product.id);
+                          context.showSuccessSnackBar('Added to cart!');
+                          context.go('/cart');
+                        },
                       );
                     },
                   );

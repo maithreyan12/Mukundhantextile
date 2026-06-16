@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../core/constants.dart';
 import '../../../data/models/category.dart';
@@ -9,7 +8,6 @@ import '../../../data/repositories/storage_repository.dart';
 import '../../../shared/widgets/cached_image.dart';
 import '../../../shared/widgets/custom_text_field.dart';
 import '../../../shared/widgets/premium_button.dart';
-import '../../../shared/utils/image_picker_cropper.dart';
 
 class AdminCategoriesScreen extends StatefulWidget {
   const AdminCategoriesScreen({super.key});
@@ -61,11 +59,8 @@ class _AdminCategoriesScreenState extends State<AdminCategoriesScreen> {
               children: [
                 GestureDetector(
                   onTap: () async {
-                    final file = await ImagePickerCropper.pickAndCrop(
-                      context,
-                      preset: CropAspectRatioPreset.square,
-                      title: 'Crop Category Image',
-                    );
+                    final picker = ImagePicker();
+                    final file = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
                     if (file != null) {
                       setState(() => selectedImage = file);
                     }

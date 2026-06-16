@@ -7,6 +7,7 @@ import '../../../core/utils/responsive_helper.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../wishlist/bloc/wishlist_cubit.dart';
+import '../../cart/bloc/cart_cubit.dart';
 import '../bloc/product_list_cubit.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -121,6 +122,11 @@ class _SearchScreenState extends State<SearchScreen> {
                         onTap: () => context.push('/product/${product.id}'),
                         onWishlistTap: () =>
                             context.read<WishlistCubit>().toggleWishlist(product.id),
+                        onBuyNow: () {
+                          context.read<CartCubit>().addToCart(productId: product.id);
+                          context.showSuccessSnackBar('Added to cart!');
+                          context.go('/cart');
+                        },
                       );
                     },
                   );

@@ -7,14 +7,16 @@ class PremiumButton extends StatefulWidget {
   final bool isFullWidth;
   final double borderRadius;
   final Color? backgroundColor;
+  final bool isOutlined;
 
   const PremiumButton({
     super.key,
     required this.onPressed,
     required this.child,
     this.isFullWidth = true,
-    this.borderRadius = 16.0,
+    this.borderRadius = 28.0,
     this.backgroundColor,
+    this.isOutlined = false,
   });
 
   @override
@@ -24,16 +26,17 @@ class PremiumButton extends StatefulWidget {
 class _PremiumButtonState extends State<PremiumButton> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 100),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
   }
 
@@ -47,12 +50,14 @@ class _PremiumButtonState extends State<PremiumButton> with SingleTickerProvider
     if (widget.onPressed != null) {
       HapticFeedback.lightImpact();
       _controller.forward();
+      setState(() => _isPressed = true);
     }
   }
 
   void _onTapUp(TapUpDetails details) {
     if (widget.onPressed != null) {
       _controller.reverse();
+      setState(() => _isPressed = false);
       widget.onPressed!();
     }
   }
@@ -60,6 +65,7 @@ class _PremiumButtonState extends State<PremiumButton> with SingleTickerProvider
   void _onTapCancel() {
     if (widget.onPressed != null) {
       _controller.reverse();
+      setState(() => _isPressed = false);
     }
   }
 
@@ -67,6 +73,7 @@ class _PremiumButtonState extends State<PremiumButton> with SingleTickerProvider
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bgColor = widget.backgroundColor ?? theme.colorScheme.primary;
+    final isDisabled = widget.onPressed == null;
 
     return GestureDetector(
       onTapDown: _onTapDown,
@@ -78,19 +85,36 @@ class _PremiumButtonState extends State<PremiumButton> with SingleTickerProvider
           scale: _scaleAnimation.value,
           child: child,
         ),
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           width: widget.isFullWidth ? double.infinity : null,
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           decoration: BoxDecoration(
-            color: widget.onPressed == null ? bgColor.withValues(alpha: 0.5) : bgColor,
+            gradient: widget.isOutlined || isDisabled
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      bgColor,
+                      Color.lerp(bgColor, Colors.black, 0.15) ?? bgColor,
+                    ],
+                  ),
+            color: widget.isOutlined
+                ? (_isPressed ? bgColor.withValues(alpha: 0.08) : Colors.transparent)
+                : (isDisabled ? bgColor.withValues(alpha: 0.4) : null),
             borderRadius: BorderRadius.circular(widget.borderRadius),
-            boxShadow: widget.onPressed != null
+            border: widget.isOutlined
+                ? Border.all(color: bgColor, width: 1.5)
+                : null,
+            boxShadow: !isDisabled && !widget.isOutlined
                 ? [
                     BoxShadow(
-                      color: bgColor.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    )
+                      color: bgColor.withValues(alpha: _isPressed ? 0.5 : 0.3),
+                      blurRadius: _isPressed ? 16 : 10,
+                      offset: Offset(0, _isPressed ? 2 : 4),
+                      spreadRadius: _isPressed ? 0 : -2,
+                    ),
                   ]
                 : null,
           ),

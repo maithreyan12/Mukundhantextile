@@ -135,7 +135,7 @@ class ProfileScreen extends StatelessWidget {
                 _menuItem(
                   context,
                   icon: Icons.info_outline,
-                  title: 'About Mukundhan Tex & Readymades',
+                  title: 'About Mugundhan Tex & Readymades',
                   onTap: () => _showAboutSheet(context),
                 ),
 
@@ -334,7 +334,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Icon(Icons.checkroom, color: Theme.of(context).colorScheme.primary, size: 48),
           const SizedBox(height: 12),
-          Text('Mukundhan Tex & Readymades',
+          Text('Mugundhan Tex & Readymades',
             style: context.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
           Text(AppConstants.appTagline,

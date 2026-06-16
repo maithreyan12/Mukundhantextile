@@ -155,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Mukundhan Tex & Readymades',
+                          'Mugundhan Tex & Readymades',
                           textAlign: TextAlign.center,
                           style: context.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w900,
@@ -246,10 +246,10 @@ class _LoginScreenState extends State<LoginScreen>
                                   builder: (context, state) {
                                     return PremiumButton(
                                       onPressed: state is AuthLoading ? null : _login,
-                                      backgroundColor: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
                                       child: state is AuthLoading
-                                          ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: context.isDarkMode ? Colors.black : Colors.white))
-                                          : Text('SIGN IN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
+                                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                                          : const Text('SIGN IN', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1.0)),
                                     );
                                   },
                                 ),
@@ -285,8 +285,16 @@ class _LoginScreenState extends State<LoginScreen>
                           child: OutlinedButton.icon(
                             onPressed: () =>
                                 context.read<AuthCubit>().signInWithGoogle(),
-                            icon: const Icon(Icons.g_mobiledata, size: 28),
-                            label: const Text('Continue with Google'),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.grey.shade300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                            ),
+                            icon: Image.network(
+                              'https://www.google.com/favicon.ico',
+                              height: 20, width: 20,
+                              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24),
+                            ),
+                            label: const Text('Continue with Google', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                           ),
                         ),
 
@@ -305,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen>
                               child: Text(
                                 'Sign Up',
                                 style: context.textTheme.bodyMedium?.copyWith(
-                                  color: context.isDarkMode ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.w800,
                                   decoration: TextDecoration.underline,
                                 ),

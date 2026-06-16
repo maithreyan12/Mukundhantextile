@@ -112,38 +112,39 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 4),
       ),
 
-      // Elevated Buttons
+      // Elevated Buttons — Premium pill shape
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: ct.primary,
-          foregroundColor: ct.isLight ? const Color(0xFF1A1A1A) : Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusMd),
-          ),
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shadowColor: ct.primary.withValues(alpha: 0.3),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          minimumSize: const Size(0, 52),
+          shape: const StadiumBorder(),
           textStyle: textTheme.labelLarge?.copyWith(
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            fontSize: 15,
           ),
         ),
       ),
 
-      // Outlined Buttons
+      // Outlined Buttons — Premium pill shape
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: isDark ? Colors.white : ct.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusMd),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+          minimumSize: const Size(0, 52),
+          shape: const StadiumBorder(),
           side: BorderSide(
-            color: isDark ? cs.primary : ct.primary,
+            color: isDark ? cs.primary.withValues(alpha: 0.5) : ct.primary.withValues(alpha: 0.4),
             width: 1.5,
           ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
+            fontSize: 14,
           ),
         ),
       ),
@@ -152,6 +153,10 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: isDark ? cs.primary : ct.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusSm),
+          ),
           textStyle: textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w700,
           ),

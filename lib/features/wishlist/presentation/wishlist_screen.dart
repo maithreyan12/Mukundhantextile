@@ -7,6 +7,7 @@ import '../../../shared/widgets/product_card.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/shimmer_loading.dart';
 import '../bloc/wishlist_cubit.dart';
+import '../../cart/bloc/cart_cubit.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -74,6 +75,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
                     onTap: () => context.push('/product/${product.id}'),
                     onWishlistTap: () =>
                         context.read<WishlistCubit>().toggleWishlist(product.id),
+                    onBuyNow: () {
+                      context.read<CartCubit>().addToCart(productId: product.id);
+                      context.showSuccessSnackBar('Added to cart!');
+                      context.go('/cart');
+                    },
                   );
                 },
               ),

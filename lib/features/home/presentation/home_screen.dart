@@ -6,11 +6,13 @@ import '../../../core/utils/extensions.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
 import '../../../data/models/product.dart';
+import '../../../data/models/banner_model.dart';
 import '../../../shared/widgets/cached_image.dart';
 import '../../../shared/widgets/product_card.dart';
 import '../../../shared/widgets/shimmer_loading.dart';
 import '../../../shared/widgets/error_widget.dart';
 import '../../wishlist/bloc/wishlist_cubit.dart';
+import '../../cart/bloc/cart_cubit.dart';
 import '../bloc/home_cubit.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -48,12 +50,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ── App Bar (mobile only — desktop has top nav from shell) ──
                 if (!isDesktop)
                   SliverAppBar(
-                    title: Text(
-                      AppConstants.appName.toUpperCase(),
-                      style: context.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 3.0,
-                        color: context.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+                    title: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        AppConstants.appName.toUpperCase(),
+                        style: context.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.5,
+                          fontSize: 18,
+                          color: context.isDarkMode ? Colors.white : const Color(0xFF1A1A1A),
+                        ),
                       ),
                     ),
                     actions: [
@@ -106,82 +113,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         constraints: const BoxConstraints(maxWidth: 1400),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
-                            horizontal: isDesktop ? 24 : 0,
-                            vertical: isDesktop ? 16 : 0,
+                            horizontal: isDesktop ? 24 : 12,
+                            vertical: isDesktop ? 16 : 8,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(isDesktop ? 12 : 0),
-                            child: state.banners.isNotEmpty
-                                ? CarouselSlider.builder(
-                                    itemCount: state.banners.length,
-                                    options: CarouselOptions(
-                                      height: isDesktop ? 400 : 280,
-                                      autoPlay: true,
-                                      enlargeCenterPage: false,
-                                      viewportFraction: 1.0,
-                                      autoPlayInterval: const Duration(seconds: 6),
-                                    ),
-                                    itemBuilder: (_, index, _) {
-                                      final banner = state.banners[index];
-                                      return GestureDetector(
-                                        onTap: () {
-                                          if (banner.targetType == 'product' &&
-                                              banner.targetId != null) {
-                                            context.push('/product/${banner.targetId}');
-                                          } else if (banner.targetType == 'category' &&
-                                              banner.targetId != null) {
-                                            context.push(
-                                                '/products?category=${banner.targetId}');
-                                          }
-                                        },
-                                        child: Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            CachedImage(
-                                              imageUrl: banner.imageUrl,
-                                              width: double.infinity,
-                                              fit: BoxFit.cover,
-                                              placeholderIcon: Icons.camera_alt_outlined,
-                                            ),
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  begin: Alignment.centerLeft,
-                                                  end: Alignment.centerRight,
-                                                  colors: [
-                                                    Colors.black.withValues(alpha: 0.75),
-                                                    Colors.black.withValues(alpha: 0.0),
-                                                  ]
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              bottom: isDesktop ? 60 : 30,
-                                              left: isDesktop ? 48 : 24,
-                                              right: isDesktop ? 400 : 80,
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    (banner.title != null && banner.title!.isNotEmpty)
-                                                        ? banner.title!.replaceAll('\\n', '\n')
-                                                        : 'NEW COLLECTION',
-                                                    style: context.textTheme.displaySmall?.copyWith(
-                                                      color: Colors.white,
-                                                      fontWeight: FontWeight.w900,
-                                                      height: 1.1,
-                                                      fontSize: isDesktop ? 42 : 28,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  )
-                                : _buildDefaultHeroBanners(context, isDesktop),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(isDesktop ? 18 : 14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(isDesktop ? 18 : 14),
+                              child: AspectRatio(
+                                aspectRatio: isDesktop ? 2.8 : 16 / 9,
+                                child: state.banners.isNotEmpty
+                                    ? _buildBannerCarousel(context, state.banners, isDesktop)
+                                    : _buildDefaultHeroBanners(context, isDesktop),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -312,6 +266,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onWishlistTap: () => context
                                         .read<WishlistCubit>()
                                         .toggleWishlist(product.id),
+                                    onBuyNow: () {
+                                      context.read<CartCubit>().addToCart(productId: product.id);
+                                      context.showSuccessSnackBar('Added to cart!');
+                                      context.go('/cart');
+                                    },
                                   );
                                 },
                               );
@@ -434,6 +393,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => context.push('/product/${product.id}'),
                     onWishlistTap: () =>
                         context.read<WishlistCubit>().toggleWishlist(product.id),
+                    onBuyNow: () {
+                      context.read<CartCubit>().addToCart(productId: product.id);
+                      context.showSuccessSnackBar('Added to cart!');
+                      context.go('/cart');
+                    },
                   );
                 },
               ),
@@ -474,6 +438,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () => context.push('/product/${product.id}'),
                       onWishlistTap: () =>
                           context.read<WishlistCubit>().toggleWishlist(product.id),
+                      onBuyNow: () {
+                        context.read<CartCubit>().addToCart(productId: product.id);
+                        context.showSuccessSnackBar('Added to cart!');
+                        context.go('/cart');
+                      },
                     );
                   },
                 );
@@ -485,13 +454,145 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Premium Banner Carousel ────────────────────────────
+  Widget _buildBannerCarousel(BuildContext context, List<BannerModel> banners, bool isDesktop) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final pageController = PageController();
+        int currentPage = 0;
+
+        // Auto-play timer
+        Future.delayed(Duration.zero, () {
+          Future.doWhile(() async {
+            await Future.delayed(const Duration(seconds: 5));
+            if (!context.mounted) return false;
+            if (pageController.hasClients) {
+              final nextPage = (pageController.page?.round() ?? 0) + 1;
+              await pageController.animateToPage(
+                nextPage % banners.length,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+              );
+            }
+            return true;
+          });
+        });
+
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Page View
+            PageView.builder(
+              controller: pageController,
+              itemCount: banners.length,
+              onPageChanged: (index) => setState(() => currentPage = index),
+              itemBuilder: (_, index) {
+                final banner = banners[index];
+                return GestureDetector(
+                  onTap: () {
+                    if (banner.targetType == 'product' && banner.targetId != null) {
+                      context.push('/product/${banner.targetId}');
+                    } else if (banner.targetType == 'category' && banner.targetId != null) {
+                      context.push('/products?category=${banner.targetId}');
+                    }
+                  },
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      // Banner image — fits perfectly
+                      CachedImage(
+                        imageUrl: banner.imageUrl,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholderIcon: Icons.camera_alt_outlined,
+                      ),
+                      // Bottom gradient for text readability
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: isDesktop ? 140 : 90,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.7),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Banner text — stylish bottom position
+                      if (banner.title != null && banner.title!.isNotEmpty)
+                        Positioned(
+                          bottom: isDesktop ? 40 : 24,
+                          left: isDesktop ? 48 : 16,
+                          right: isDesktop ? 200 : 60,
+                          child: Text(
+                            banner.title!.replaceAll('\\n', '\n'),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: isDesktop ? 32 : 18,
+                              height: 1.2,
+                              letterSpacing: 0.5,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withValues(alpha: 0.6),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            // Dot indicators
+            if (banners.length > 1)
+              Positioned(
+                bottom: 8,
+                right: 12,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    banners.length,
+                    (i) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: currentPage == i ? 18 : 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: currentPage == i
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   // ── Default Hero Banners (when no admin banners) ────────
   Widget _buildDefaultHeroBanners(BuildContext context, bool isDesktop) {
     final bannerData = [
       {
         'gradient': const [Color(0xFF1A1A2E), Color(0xFF16213E)],
         'accent': const Color(0xFFE94560),
-        'title': 'MUKUNDHAN\nTEX & READYMADES',
+        'title': 'MUGUNDHAN\nTEX & READYMADES',
         'subtitle': 'All Kinds of Clothes Under One Roof',
         'icon': Icons.storefront_rounded,
       },

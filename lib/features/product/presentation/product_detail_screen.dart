@@ -312,57 +312,121 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         const SizedBox(height: 28),
 
-                        // Action buttons
+                        // Action buttons (Flipkart style)
                         Row(
                           children: [
+                            // Add to Cart
                             Expanded(
-                              child: OutlinedButton(
-                                onPressed: () =>
-                                    _showCustomizeBottomSheet(context, product),
-                                style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 18),
-                                  side: BorderSide(
-                                      color: context.isDarkMode
-                                          ? Colors.white24
-                                          : Colors.black26),
-                                ),
-                                child: const FittedBox(
+                              child: SizedBox(
+                                height: 52,
+                                child: OutlinedButton(
+                                  onPressed: product.inStock
+                                      ? () {
+                                          context.read<CartCubit>().addToCart(
+                                                productId: product.id,
+                                                variant: _selectedSize != null
+                                                    ? {'size': _selectedSize}
+                                                    : null,
+                                              );
+                                          context.showSuccessSnackBar('Added to cart!');
+                                        }
+                                      : null,
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                        color: context.isDarkMode
+                                            ? Colors.white24
+                                            : Colors.grey.shade400),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(26)),
+                                  ),
+                                  child: FittedBox(
                                     fit: BoxFit.scaleDown,
-                                    child: Text('CUSTOMIZE')),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.add_shopping_cart_rounded, size: 18,
+                                          color: context.isDarkMode ? Colors.white : Colors.black87),
+                                        const SizedBox(width: 8),
+                                        Text('ADD TO CART',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                            letterSpacing: 0.5,
+                                            color: context.isDarkMode ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
+                            // Buy Now with price
                             Expanded(
-                              child: PremiumButton(
-                                onPressed: product.inStock
-                                    ? () {
-                                        if (_selectedSize == null) {
-                                          context.showSnackBar(
-                                              'Please select a size',
-                                              isError: true);
-                                          return;
+                              child: SizedBox(
+                                height: 52,
+                                child: GestureDetector(
+                                  onTap: product.inStock
+                                      ? () {
+                                          context.read<CartCubit>().addToCart(
+                                                productId: product.id,
+                                                variant: _selectedSize != null
+                                                    ? {'size': _selectedSize}
+                                                    : null,
+                                              );
+                                          context.push('/checkout');
                                         }
-                                        context.read<CartCubit>().addToCart(
-                                              productId: product.id,
-                                              variant: {
-                                                'size': _selectedSize
-                                              },
-                                            );
-                                        context.showSuccessSnackBar(
-                                            'Added to cart!');
-                                      }
-                                    : null,
-                                backgroundColor: const Color(0xFFEAEAEA),
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    product.inStock
-                                        ? 'ADD TO CART'
-                                        : 'OUT OF STOCK',
-                                    style: const TextStyle(
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w800),
+                                      : null,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: product.inStock
+                                          ? LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Theme.of(context).colorScheme.primary,
+                                                Color.lerp(Theme.of(context).colorScheme.primary, Colors.black, 0.15) ?? Theme.of(context).colorScheme.primary,
+                                              ],
+                                            )
+                                          : null,
+                                      color: product.inStock ? null : Colors.grey.shade400,
+                                      borderRadius: BorderRadius.circular(26),
+                                      boxShadow: product.inStock
+                                          ? [
+                                              BoxShadow(
+                                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 3),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.bolt_rounded, size: 18, color: Colors.white),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              product.inStock
+                                                  ? 'BUY NOW  ${product.effectivePrice.toCurrency}'
+                                                  : 'OUT OF STOCK',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w900,
+                                                fontSize: 14,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -397,6 +461,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                 style: OutlinedButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(26)),
                                 ),
                               ),
                             );
@@ -685,7 +751,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           color: context.isDarkMode
               ? Colors.white.withValues(alpha: 0.04)
               : Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(26),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -739,81 +805,181 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  // ── Mobile Bottom Bar ───────────────────────────────────
+  // ── Mobile Bottom Bar (Flipkart Style) ─────────────────
   Widget _buildMobileBottomBar(BuildContext context) {
     return BlocBuilder<ProductDetailCubit, ProductDetailState>(
       builder: (context, state) {
         if (state.product == null) return const SizedBox.shrink();
+        final product = state.product!;
+        final primaryColor = Theme.of(context).colorScheme.primary;
+
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
           decoration: BoxDecoration(
             color: context.isDarkMode
                 ? Theme.of(context).colorScheme.surface
                 : Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
                 offset: const Offset(0, -4),
               ),
             ],
+            border: Border(
+              top: BorderSide(
+                color: context.isDarkMode ? Colors.white10 : const Color(0xFFEEEEEE),
+              ),
+            ),
           ),
           child: SafeArea(
-            minimum: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            minimum: const EdgeInsets.only(bottom: 4),
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () =>
-                            _showCustomizeBottomSheet(context, state.product!),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          side: BorderSide(
-                              color: context.isDarkMode
-                                  ? Colors.white24
-                                  : Colors.black26),
+                // Cart icon button
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: context.isDarkMode ? Colors.white24 : Colors.grey.shade300,
+                    ),
+                    borderRadius: BorderRadius.circular(26),
+                  ),
+                  child: IconButton(
+                    onPressed: () => context.go('/cart'),
+                    icon: Icon(
+                      Icons.shopping_cart_outlined,
+                      color: context.isDarkMode ? Colors.white70 : Colors.black87,
+                    ),
+                    tooltip: 'Go to Cart',
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Add to Cart button
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: OutlinedButton(
+                      onPressed: product.inStock
+                          ? () {
+                              context.read<CartCubit>().addToCart(
+                                    productId: product.id,
+                                    variant: _selectedSize != null
+                                        ? {'size': _selectedSize}
+                                        : null,
+                                  );
+                              context.showSuccessSnackBar('Added to cart!');
+                            }
+                          : null,
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: context.isDarkMode ? Colors.white24 : Colors.grey.shade400,
                         ),
-                        child: const FittedBox(
-                            fit: BoxFit.scaleDown, child: Text('CUSTOMIZE')),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.add_shopping_cart_rounded,
+                              size: 18,
+                              color: context.isDarkMode ? Colors.white : Colors.black87,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'ADD TO CART',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 13,
+                                letterSpacing: 0.5,
+                                color: context.isDarkMode ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: PremiumButton(
-                        onPressed: state.product!.inStock
-                            ? () {
-                                if (_selectedSize == null) {
-                                  context.showSnackBar(
-                                      'Please select a size',
-                                      isError: true);
-                                  return;
-                                }
-                                context.read<CartCubit>().addToCart(
-                                      productId: state.product!.id,
-                                      variant: {'size': _selectedSize},
-                                    );
-                                context
-                                    .showSuccessSnackBar('Added to cart!');
-                              }
-                            : null,
-                        backgroundColor: const Color(0xFFEAEAEA),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Buy Now button with price
+                Expanded(
+                  child: SizedBox(
+                    height: 50,
+                    child: GestureDetector(
+                      onTap: product.inStock
+                          ? () {
+                              context.read<CartCubit>().addToCart(
+                                    productId: product.id,
+                                    variant: _selectedSize != null
+                                        ? {'size': _selectedSize}
+                                        : null,
+                                  );
+                              context.push('/checkout');
+                            }
+                          : null,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: product.inStock
+                              ? LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    primaryColor,
+                                    Color.lerp(primaryColor, Colors.black, 0.15) ?? primaryColor,
+                                  ],
+                                )
+                              : null,
+                          color: product.inStock ? null : Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(26),
+                          boxShadow: product.inStock
+                              ? [
+                                  BoxShadow(
+                                    color: primaryColor.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        alignment: Alignment.center,
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
-                          child: Text(
-                            state.product!.inStock
-                                ? 'ADD TO CART'
-                                : 'OUT OF STOCK',
-                            style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w800),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  product.inStock ? 'BUY NOW' : 'OUT OF STOCK',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 13,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                                if (product.inStock)
+                                  Text(
+                                    product.effectivePrice.toCurrency,
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),

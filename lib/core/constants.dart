@@ -16,7 +16,7 @@ class AppConstants {
   static const String avatarsBucket = 'avatars';
 
   // ── App Info ──────────────────────────────────────────
-  static const String appName = "Mukundhan Tex & Readymades";
+  static const String appName = "Mugundhan Tex & Readymades";
   static const String appTagline = 'Shop Smart, Live Better';
   static const String currency = '₹';
 
