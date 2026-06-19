@@ -1382,8 +1382,9 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
+                    final router = GoRouter.of(context);
                     Navigator.pop(context);
-                    context.push('/forgot-password');
+                    router.push('/forgot-password');
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
