@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/extensions.dart';
 import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/cached_image.dart';
+import '../../../shared/widgets/responsive_wrapper.dart';
 import '../bloc/orders_cubit.dart';
 import '../../cart/bloc/cart_cubit.dart';
 import '../../../data/models/order.dart';
@@ -104,8 +105,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
             return true;
           }).toList();
 
-          return Column(
-            children: [
+          return ResponsiveWrapper(
+            maxWidth: 800,
+            child: Column(
+              children: [
 
               // ── 2. Search & Filter Bar ──────────────────────────────
               Container(
@@ -444,8 +447,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 ),
               ),
             ],
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

@@ -32,7 +32,8 @@ void main() async {
 
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
-    anonKey: AppConstants.supabaseAnonKey,
+    anonKey: AppConstants.supabaseAnonKey,  // TODO: rename to publishableKey when upgrading supabase_flutter
+
   );
 
   // Load theme settings from SharedPreferences

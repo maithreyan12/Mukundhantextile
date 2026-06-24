@@ -343,7 +343,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: order.items.length,
-                          separatorBuilder: (_, __) => const Divider(),
+                          separatorBuilder: (_, _) => const Divider(),
                           itemBuilder: (context, idx) {
                             final item = order.items[idx];
                             return Row(
@@ -356,7 +356,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                                       width: 45,
                                       height: 45,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
+                                      errorBuilder: (_, _, _) => const Icon(Icons.image_not_supported),
                                     ),
                                   )
                                 else

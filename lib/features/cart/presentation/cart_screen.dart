@@ -138,7 +138,7 @@ class _CartScreenState extends State<CartScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: state.items.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = state.items[index];
                           return _buildCartItem(context, item);
@@ -265,22 +265,7 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildTabItem(String title, {required bool isSelected}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        alignment: Alignment.center,
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.blue : Colors.black87,
-          ),
-        ),
-      ),
-    );
-  }
+
 
   Widget _buildItemsMissedSection(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(

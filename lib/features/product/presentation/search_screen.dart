@@ -22,19 +22,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   Timer? _debounce;
-  final List<Map<String, String>> _recentSearches = [
-    {'title': 'Silk Sarees', 'image': 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=150'},
-    {'title': 'Cotton Sarees', 'image': 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=150'},
-    {'title': 'Dhotis', 'image': 'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=150'},
-    {'title': 'Mens Shirts', 'image': 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=150'},
-    {'title': 'Kids Pavadai', 'image': 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=150'},
-  ];
 
-  final List<Map<String, String>> _recommendedStores = [
-    {'title': 'Silk Collection', 'image': 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=300'},
-    {'title': 'Wedding Special', 'image': 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300'},
-    {'title': 'Kids Zone', 'image': 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=300'},
-  ];
 
   @override
   void initState() {

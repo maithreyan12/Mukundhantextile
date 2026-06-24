@@ -12,7 +12,7 @@ import '../../wishlist/bloc/wishlist_cubit.dart';
 import '../../cart/bloc/cart_cubit.dart';
 import '../bloc/product_detail_cubit.dart';
 import '../../../data/models/product.dart';
-import '../../../shared/widgets/premium_button.dart';
+
 import '../../../shared/widgets/size_selector.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -983,136 +983,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
               ],
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCustomizeBottomSheet(BuildContext context, Product product) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: context.isDarkMode ? const Color(0xFF141414) : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: Column(
-            children: [
-              // Handle drag
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  height: 4,
-                  width: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade600,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    Text('Customize Your Style', style: context.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    )),
-                    const SizedBox(height: 24),
-                    // Mockup Image
-                    Container(
-                      height: 200,
-                      decoration: BoxDecoration(
-                        color: context.isDarkMode ? Theme.of(context).colorScheme.surface : Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.isDarkMode ? const Color(0xFF333333) : Colors.grey.shade300),
-                      ),
-                      child: Center(
-                        child: CachedImage(
-                          imageUrl: product.primaryImage,
-                          width: 150,
-                          height: 150,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    
-                    Text('Placement', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: ['Front', 'Back', 'Sleeve'].map((place) => Expanded(
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: place == 'Front' ? const Color(0xFFEAEAEA) : Colors.grey.shade700),
-                            borderRadius: BorderRadius.circular(8),
-                            color: place == 'Front' ? const Color(0xFFEAEAEA).withValues(alpha: 0.1) : Colors.transparent,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(place, style: TextStyle(
-                            color: place == 'Front' ? const Color(0xFFEAEAEA) : Colors.grey.shade400,
-                            fontWeight: FontWeight.w600,
-                          )),
-                        ),
-                      )).toList(),
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text('Custom Text / Graphic', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    TextField(
-                      decoration: const InputDecoration(
-                        hintText: "Enter your custom name or text...",
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    Text('Print Color', style: context.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [Colors.white, const Color(0xFFEAEAEA), Colors.red, Colors.blue].map((color) => Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white24, width: 2),
-                        ),
-                      )).toList(),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-              // Bottom Action
-              Padding(
-                padding: const EdgeInsets.all(24).copyWith(top: 12),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: PremiumButton(
-                    onPressed: () {
-                      if (_selectedSize == null) {
-                        context.showSnackBar('Please select a size first', isError: true);
-                        return;
-                      }
-                      Navigator.pop(context);
-                      context.read<CartCubit>().addToCart(
-                        productId: product.id,
-                        variant: {'size': _selectedSize, 'isCustomized': true},
-                      );
-                      context.showSuccessSnackBar('Custom design added to cart!');
-                    },
-                    backgroundColor: const Color(0xFFEAEAEA),
-                    child: const FittedBox(fit: BoxFit.scaleDown, child: Text('CONFIRM & ADD TO CART', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800))),
-                  ),
-                ),
-              ),
-            ],
           ),
         );
       },

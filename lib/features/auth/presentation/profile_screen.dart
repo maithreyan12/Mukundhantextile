@@ -2,13 +2,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 import '../../../core/utils/extensions.dart';
 import '../../../core/utils/responsive_helper.dart';
 import '../../../core/constants.dart';
 import '../../../shared/widgets/custom_text_field.dart';
-import '../../../shared/widgets/premium_button.dart';
+
 import '../../../data/models/user_profile.dart';
 import '../bloc/auth_cubit.dart';
 import '../bloc/auth_state.dart';

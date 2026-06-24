@@ -237,7 +237,7 @@ class _AdminBrowseSettingsScreenState extends State<AdminBrowseSettingsScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _liveNowSort,
+                            initialValue: _liveNowSort,
                             decoration: const InputDecoration(
                               labelText: 'Sort Criteria',
                               border: OutlineInputBorder(),
@@ -309,7 +309,7 @@ class _AdminBrowseSettingsScreenState extends State<AdminBrowseSettingsScreen> {
                           ),
                           const SizedBox(height: 16),
                           DropdownButtonFormField<String>(
-                            value: _saleComingSort,
+                            initialValue: _saleComingSort,
                             decoration: const InputDecoration(
                               labelText: 'Sort Criteria',
                               border: OutlineInputBorder(),

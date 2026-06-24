@@ -339,13 +339,13 @@ class AuthRepository {
       } else {
         try {
           await _client.from('profiles').update({
-            if (actualPhone != null) 'phone': actualPhone,
+            'phone': ?actualPhone,
             'is_phone_verified': true,
           }).eq('id', userId);
         } on PostgrestException catch (updateErr) {
           if (updateErr.message.contains('is_phone_verified') || updateErr.code == 'PGRST204') {
             await _client.from('profiles').update({
-              if (actualPhone != null) 'phone': actualPhone,
+              'phone': ?actualPhone,
             }).eq('id', userId);
           } else {
             rethrow;

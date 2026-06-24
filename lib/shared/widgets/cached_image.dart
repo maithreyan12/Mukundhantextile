@@ -32,8 +32,8 @@ class CachedImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (_, __) => _placeholder(context),
-        errorWidget: (_, __, ___) => _placeholder(context),
+        placeholder: (_, _) => _placeholder(context),
+        errorWidget: (_, _, _) => _placeholder(context),
       ),
     );
   }

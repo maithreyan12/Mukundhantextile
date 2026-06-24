@@ -620,7 +620,7 @@ class _LoginScreenState extends State<LoginScreen>
                             icon: Image.network(
                               'https://www.google.com/favicon.ico',
                               height: 20, width: 20,
-                              errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24),
+                              errorBuilder: (_, _, _) => const Icon(Icons.g_mobiledata, size: 24),
                             ),
                             label: const Text('Continue with Google', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                           ),

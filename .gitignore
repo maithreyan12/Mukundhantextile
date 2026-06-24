@@ -52,6 +52,11 @@ env_file
 *.env.production
 *.env.staging
 
+# ── Android Signing ──────────────────────────────────
+android/key.properties
+**/*.jks
+**/*.keystore
+
 # Build outputs
 *.apk
 *.aab

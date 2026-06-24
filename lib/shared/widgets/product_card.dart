@@ -42,7 +42,7 @@ class _ProductCardState extends State<ProductCard> with SingleTickerProviderStat
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.identity()..translate(0.0, _isHovered ? -4.0 : 0.0),
+          transform: Matrix4.identity()..storage[13] = _isHovered ? -4.0 : 0.0,
           decoration: BoxDecoration(
             color: context.isDarkMode ? const Color(0xFF1E1E2A) : Colors.white,
             borderRadius: BorderRadius.circular(16),
