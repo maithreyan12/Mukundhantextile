@@ -23,14 +23,13 @@ void main() {
     expect(url.isNotEmpty, isTrue);
     expect(anonKey.isNotEmpty, isTrue);
 
-    await Supabase.initialize(
-      url: url,
-      anonKey: anonKey,
-      authOptions: FlutterAuthClientOptions(
-        localStorage: const EmptyLocalStorage(),
+    final client = SupabaseClient(
+      url,
+      anonKey,
+      authOptions: const AuthClientOptions(
+        authFlowType: AuthFlowType.implicit,
       ),
     );
-    final client = Supabase.instance.client;
 
     print('--- Testing Mobile SMS OTP ---');
     try {
